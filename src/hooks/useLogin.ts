@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import { authService } from '../services/auth.service';
 import { ROUTES } from '../routes/routes';
 
 export const useLogin = () => {
@@ -17,13 +17,10 @@ export const useLogin = () => {
     setError('');
     
     try {
-      const response = await api.post('/api/v1/users/login', {
-        email,
-        password
-      });
+      const data = await authService.login(email, password);
 
-      if (response.data.ok) {
-        const { token, user } = response.data.data;
+      if (data.ok) {
+        const { token, user } = data.data;
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         navigate(ROUTES.dashboard);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axios';
+import { studentsService } from '../services/students.service';
 
 export const useStudents = () => {
   const [students, setStudents] = useState<any[]>([]);
@@ -13,11 +13,9 @@ export const useStudents = () => {
   const fetchStudents = async (pageNumber: number) => {
     try {
       setLoading(true);
-      const response = await api.get('/api/v1/students/paginate', {
-        params: { page: pageNumber, limit }
-      });
+      const data = await studentsService.getPaginated(pageNumber, limit);
       
-      const { docs, totalDocs: total, totalPages: pages } = response.data;
+      const { docs, totalDocs: total, totalPages: pages } = data;
       setStudents(docs || []);
       setTotalDocs(total || 0);
       setTotalPages(pages || 1);

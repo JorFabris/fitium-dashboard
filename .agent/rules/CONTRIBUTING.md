@@ -136,15 +136,13 @@ services/
 ├── students.service.ts
 ├── classes.service.ts
 ├── payments.service.ts
-├── products.service.ts
-├── expenses.service.ts
-└── competitions.service.ts
-12. Reglas de llamadas HTTP
-Nunca consumir Axios directamente en componentes visuales.
-Toda llamada HTTP debe pasar por Custom Hooks o Services.
+12. Reglas de llamadas HTTP (Servicios)
+Toda llamada a la API debe estar obligatoriamente centralizada en `src/services/{nombrePantalla}.service.ts`.
+Cada endpoint debe ser una función independiente dentro del objeto o clase del servicio.
 Usar siempre rutas relativas (ej. `/api/v1/users`) y NUNCA URLs absolutas (`http://localhost:5001/...`). El baseURL de Axios ya lo maneja.
-Manejar errores correctamente.
-Tipar responses.
+Nunca consumir Axios directamente en componentes visuales ni en los hooks. Los hooks deben llamar a las funciones del servicio correspondiente.
+Manejar errores de red correctamente.
+Tipar parámetros de entrada y responses de salida.
 🔔 Toasts
 13. Toastify
 
