@@ -1,0 +1,326 @@
+---
+trigger: always_on
+---
+
+# Fitium Dashboard Rules - React JS
+
+## 🚀 Reglas Obligatorias
+
+### 1. Gestor de Paquetes
+
+> [!IMPORTANT]
+> SIEMPRE utilizar **PNPM** para instalar, actualizar o eliminar dependencias.
+
+```bash
+pnpm install
+pnpm add package-name
+pnpm remove package-name
+
+❌ No usar npm
+❌ No usar yarn
+
+📁 Arquitectura del Proyecto
+2. Estructura Base
+src/
+│
+├── assets/
+├── components/
+├── constants/
+├── features/
+├── hooks/
+├── layouts/
+├── pages/
+├── routes/
+├── services/
+├── store/
+├── styles/
+├── types/
+├── utils/
+└── App.tsx
+🧩 Componentización
+3. Componentes
+Mantener componentes pequeños y reutilizables.
+Un componente = una responsabilidad.
+Evitar componentes gigantes.
+Si supera ~250 líneas, dividirlo.
+Separar lógica y presentación.
+4. Componentes reutilizables obligatorios
+
+Crear componentes compartidos para:
+
+Button
+Input
+Select
+Card
+Modal
+Drawer
+Table
+Badge
+EmptyState
+Loader
+Pagination
+ConfirmDialog
+PageHeader
+🔷 TypeScript
+5. Reglas de TypeScript
+Usar TypeScript en toda la app.
+Evitar any.
+Tipar props, servicios, estados y respuestas.
+Centralizar interfaces.
+
+Ejemplo:
+
+export interface Student {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  status: 'active' | 'inactive';
+}
+🎨 Diseño y Estilos
+6. Paleta Oficial
+export const COLORS = {
+  background: '#F8F9FA',
+  card: '#FFFFFF',
+  text: '#212529',
+  primary: '#0D6EFD',
+  secondary: '#6C757D',
+};
+7. Reglas de estilos
+No hardcodear colores.
+No hardcodear tamaños repetidos.
+Mantener spacing consistente.
+Mantener border-radius consistente.
+Mantener sombras suaves.
+Usar diseño limpio y minimalista.
+8. Estilo visual esperado
+
+Inspiración visual:
+
+Stripe
+Linear
+Notion
+Supabase
+Vercel
+Clerk
+🌎 Internacionalización y Textos
+9. Textos centralizados
+
+[!IMPORTANT]
+Los textos NO deben estar hardcodeados.
+
+Crear:
+
+src/constants/texts.ts
+
+Ejemplo:
+
+export const DASHBOARD_TEXTS = {
+  home: {
+    title: 'Dashboard',
+    subtitle: 'Resumen general del box',
+    addStudent: 'Agregar alumno',
+  },
+};
+🌐 Axios y Servicios
+10. Axios centralizado
+src/services/api.ts
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+11. Servicios separados
+services/
+├── auth.service.ts
+├── students.service.ts
+├── classes.service.ts
+├── payments.service.ts
+├── products.service.ts
+├── expenses.service.ts
+└── competitions.service.ts
+12. Reglas de servicios
+Nunca consumir Axios directamente en componentes.
+Toda llamada HTTP debe pasar por services.
+Manejar errores correctamente.
+Tipar responses.
+🔔 Toasts
+13. Toastify
+
+Usar siempre react-toastify.
+
+❌ No usar alert().
+
+Ejemplo:
+
+toast.success('Alumno creado correctamente');
+toast.error('Ocurrió un error');
+📋 Formularios
+14. Reglas de formularios
+Validar todos los campos.
+Mostrar errores claros.
+Deshabilitar submit mientras carga.
+Evitar doble submit.
+Mostrar feedback visual.
+Limpiar formularios cuando corresponda.
+📊 Dashboard
+15. Home Dashboard
+
+La home debe mostrar información útil para el dueño del box:
+
+Ingresos mensuales
+Gastos mensuales
+Ganancia neta
+Alumnos activos
+Mensualidades vencidas
+Clases del día
+Reservas
+Stock bajo
+Alertas importantes
+Top alumnos
+KPIs generales
+16. Widgets recomendados
+Revenue chart
+Attendance chart
+Occupancy chart
+Alerts panel
+Quick actions
+Upcoming classes
+Payment summary
+Student growth
+📦 Estados de UI
+17. Estados obligatorios
+
+Cada pantalla debe contemplar:
+
+Loading state
+Error state
+Empty state
+Success state
+Data state
+
+Ejemplo:
+
+if (isLoading) return <Loader />;
+if (error) return <ErrorState />;
+if (!data.length) return <EmptyState />;
+📑 Tablas
+18. Reglas para tablas
+No mostrar campos innecesarios.
+Priorizar legibilidad.
+Usar badges para estados.
+Agregar acciones claras.
+
+Ejemplo:
+
+Editar
+Eliminar
+Ver detalle
+Activar/desactivar
+🧠 Hooks
+19. Hooks reutilizables
+hooks/
+├── useAuth.ts
+├── useStudents.ts
+├── usePayments.ts
+├── useDebounce.ts
+├── useDrawer.ts
+├── useModal.ts
+└── usePagination.ts
+🛣️ Rutas
+20. Centralización de rutas
+src/routes/routes.ts
+export const ROUTES = {
+  home: '/',
+  students: '/students',
+  classes: '/classes',
+  payments: '/payments',
+  settings: '/settings',
+};
+
+❌ No hardcodear rutas.
+
+🔐 Seguridad
+21. Seguridad Frontend
+No exponer secretos.
+Validar roles.
+Ocultar acciones sin permisos.
+Manejar expiración de sesión.
+Validar autenticación.
+22. Roles
+export type UserRole =
+  | 'owner'
+  | 'admin'
+  | 'coach'
+  | 'receptionist';
+⚡ Performance
+23. Optimización
+Evitar renders innecesarios.
+Usar paginación.
+Usar lazy loading.
+Debounce en búsquedas.
+Memoización cuando tenga sentido.
+Evitar traer data innecesaria.
+🧹 Clean Code
+24. Buenas prácticas
+Nombres descriptivos.
+Evitar lógica duplicada.
+Evitar componentes gigantes.
+Evitar nesting excesivo.
+Evitar JSX complejo.
+Mantener código legible.
+🧪 Testing
+25. Testing recomendado
+Unit testing
+Integration testing
+Component testing
+
+Herramientas sugeridas:
+
+Jest
+React Testing Library
+📱 Responsive
+26. Responsive obligatorio
+
+El dashboard debe funcionar correctamente en:
+
+Desktop
+Tablet
+Mobile
+📈 Escalabilidad
+27. Escalabilidad
+
+El sistema debe estar preparado para:
+
+Multi-box
+Multi-roles
+Multi-sucursal
+Multi-coach
+Feature flags
+Internacionalización
+🛑 Código prohibido
+28. No permitido
+
+❌ console.log en producción
+❌ any innecesarios
+❌ hardcodeo de textos
+❌ hardcodeo de colores
+❌ lógica HTTP en componentes
+❌ componentes gigantes
+❌ estilos inconsistentes
+❌ duplicación de lógica
+❌ rutas hardcodeadas
+
+✅ Objetivo del Dashboard
+
+Fitium debe sentirse:
+
+Profesional
+Moderno
+Limpio
+Minimalista
+Escalable
+Premium
+Rápido
+Intuitivo
+SaaS de alta calidad
