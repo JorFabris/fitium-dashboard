@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -13,12 +13,30 @@ import {
   FileBarChart,
   Settings,
   Building2,
-  ChevronDown
+  ChevronDown,
+  LogOut
 } from 'lucide-react';
 import { ROUTES } from '../routes/routes';
 import isologo from '../assets/isologo.png';
 
 const MainLayout: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch(e) {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate(ROUTES.login);
+  };
   const navItems = [
     { name: 'Dashboard', path: ROUTES.dashboard, icon: LayoutDashboard },
     { name: 'Alumnos', path: ROUTES.students, icon: Users },
@@ -85,15 +103,19 @@ const MainLayout: React.FC = () => {
             <div className="flex items-center gap-3">
               <img
                 src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop"
-                alt="Jorge Ramírez"
+                alt={user ? `${user.firstName} ${user.lastName}` : "Usuario"}
                 className="w-8 h-8 rounded-full object-cover"
               />
               <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">Jorge Ramírez</p>
-                <p className="text-xs text-gray-500">Owner</p>
+                <p className="text-sm font-semibold text-gray-900 leading-tight">
+                  {user ? `${user.firstName} ${user.lastName}` : 'Cargando...'}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role || 'User'}</p>
               </div>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+            <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Cerrar sesión">
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </aside>

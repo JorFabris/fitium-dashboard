@@ -6,6 +6,14 @@ import Students from './pages/Students';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to={ROUTES.login} replace />;
+  }
+  return <>{children}</>;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -13,7 +21,7 @@ function App() {
         <Route path={ROUTES.login} element={<Login />} />
         
         {/* Rutas protegidas dentro del MainLayout */}
-        <Route element={<MainLayout />}>
+        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path={ROUTES.dashboard} element={<Dashboard />} />
           {/* Aquí irán las otras rutas */}
           <Route path={ROUTES.students} element={<Students />} />

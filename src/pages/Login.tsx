@@ -1,45 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Mail, Lock, Eye, EyeOff, Activity, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import { useLogin } from '../hooks/useLogin';
 import logo from '../assets/logo.png';
 import { LOGIN_TEXTS } from '../constants/texts';
-import { ROUTES } from '../routes/routes';
 
 const Login: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    try {
-      const response = await api.post('http://localhost:5001/api/v1/users/login', {
-        email,
-        password
-      });
-
-      if (response.data.ok) {
-        const { token, user } = response.data.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        navigate(ROUTES.dashboard);
-      } else {
-        setError('Error en el inicio de sesión. Verifica tus credenciales.');
-      }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Error en el servidor. Intenta nuevamente más tarde.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    showPassword,
+    setShowPassword,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    error,
+    handleLogin
+  } = useLogin();
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">

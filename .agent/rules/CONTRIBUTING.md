@@ -139,9 +139,10 @@ services/
 ├── products.service.ts
 ├── expenses.service.ts
 └── competitions.service.ts
-12. Reglas de servicios
-Nunca consumir Axios directamente en componentes.
-Toda llamada HTTP debe pasar por services.
+12. Reglas de llamadas HTTP
+Nunca consumir Axios directamente en componentes visuales.
+Toda llamada HTTP debe pasar por Custom Hooks o Services.
+Usar siempre rutas relativas (ej. `/api/v1/users`) y NUNCA URLs absolutas (`http://localhost:5001/...`). El baseURL de Axios ya lo maneja.
 Manejar errores correctamente.
 Tipar responses.
 🔔 Toasts
@@ -218,14 +219,34 @@ Eliminar
 Ver detalle
 Activar/desactivar
 🧠 Hooks
-19. Hooks reutilizables
+19. Lógica en Hooks (Separation of Concerns)
+
+> [!IMPORTANT]
+> Prohibido tener lógica compleja de negocio o llamadas a la API directamente dentro de las pantallas (pages) o componentes de presentación.
+> TODA la lógica de estado, fetch de datos y funciones manejadoras (handlers) debe extraerse a un Custom Hook dedicado.
+
+Ejemplo de estructura esperada:
+```tsx
+// ❌ INCORRECTO: Todo en el componente
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const handleLogin = async () => { /* ... */ };
+  return <form onSubmit={handleLogin}>...</form>;
+}
+
+// ✅ CORRECTO: Lógica extraída
+const Login = () => {
+  const { email, setEmail, handleLogin } = useLogin();
+  return <form onSubmit={handleLogin}>...</form>;
+}
+```
+
+Estructura de hooks recomendada:
 hooks/
 ├── useAuth.ts
+├── useLogin.ts
 ├── useStudents.ts
-├── usePayments.ts
 ├── useDebounce.ts
-├── useDrawer.ts
-├── useModal.ts
 └── usePagination.ts
 🛣️ Rutas
 20. Centralización de rutas
