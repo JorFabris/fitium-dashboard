@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -14,14 +14,18 @@ import {
   Settings,
   Building2,
   ChevronDown,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 import { ROUTES } from '../routes/routes';
 import isologo from '../assets/isologo.png';
 
 const MainLayout: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -32,11 +36,17 @@ const MainLayout: React.FC = () => {
     }
   }, []);
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate(ROUTES.login);
   };
+
   const navItems = [
     { name: 'Dashboard', path: ROUTES.dashboard, icon: LayoutDashboard },
     { name: 'Alumnos', path: ROUTES.students, icon: Users },
@@ -52,14 +62,28 @@ const MainLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] font-sans">
+    <div className="flex h-screen bg-[#F8F9FA] font-sans overflow-hidden">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col transition-all">
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo area */}
-        <div className="h-20 flex items-center px-6">
+        <div className="h-16 lg:h-20 flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-2">
-            <img src={isologo} alt="Fitium Logo" className="h-15 object-contain" />
+            <img src={isologo} alt="Fitium Logo" className="h-8 lg:h-10 object-contain" />
           </div>
+          <button 
+            className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -85,35 +109,35 @@ const MainLayout: React.FC = () => {
         </nav>
 
         {/* Bottom Section: Box & User */}
-        <div className="p-4 border-t border-gray-100 flex flex-col gap-4">
+        <div className="p-4 border-t border-gray-100 flex flex-col gap-4 shrink-0 bg-white">
           <div className="flex items-center justify-between px-2 cursor-pointer group">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
                 <Building2 className="w-4 h-4 text-gray-600" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">Fitium Box</p>
-                <p className="text-xs text-gray-500">Cambiar box</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 leading-tight truncate">Fitium Box</p>
+                <p className="text-xs text-gray-500 truncate">Cambiar box</p>
               </div>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 shrink-0" />
           </div>
 
           <div className="flex items-center justify-between px-2 cursor-pointer group">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <img
                 src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop"
                 alt={user ? `${user.firstName} ${user.lastName}` : "Usuario"}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-8 h-8 rounded-full object-cover shrink-0"
               />
-              <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">
+              <div className="min-w-0 pr-2">
+                <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
                   {user ? `${user.firstName} ${user.lastName}` : 'Cargando...'}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role || 'User'}</p>
+                <p className="text-xs text-gray-500 capitalize truncate">{user?.role || 'User'}</p>
               </div>
             </div>
-            <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Cerrar sesión">
+            <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0" title="Cerrar sesión">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -121,8 +145,21 @@ const MainLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <div className="p-8">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* Mobile Header */}
+        <div className="lg:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
+          <div className="flex items-center gap-2">
+            <img src={isologo} alt="Fitium" className="h-8 object-contain" />
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)} 
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
           <Outlet />
         </div>
       </main>

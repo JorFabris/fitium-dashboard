@@ -18,5 +18,18 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*'],
+              message: 'El uso de imports relativos hacia atrás (../) no está permitido. Por favor usa el alias @/ en su lugar.',
+            },
+          ],
+        },
+      ],
+    },
   },
 ])

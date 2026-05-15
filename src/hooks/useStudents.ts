@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { studentsService } from '../services/students.service';
+import { studentsService } from '@/services/students.service';
+import type { Student } from '@/types/student';
 
 export const useStudents = () => {
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -13,14 +14,45 @@ export const useStudents = () => {
   const fetchStudents = async (pageNumber: number) => {
     try {
       setLoading(true);
-      const data = await studentsService.getPaginated(pageNumber, limit);
-      
-      const { docs, totalDocs: total, totalPages: pages } = data;
-      setStudents(docs || []);
+      const response = await studentsService.getPaginated(pageNumber, limit);
+
+
+
+      const { data, total, totalPages } = response;
+      setStudents(data || []);
       setTotalDocs(total || 0);
-      setTotalPages(pages || 1);
+      setTotalPages(totalPages || 1);
     } catch (error) {
       console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createStudent = async (data: any) => {
+    try {
+      setLoading(true);
+      await studentsService.create(data);
+      await fetchStudents(1);
+      setPage(1);
+      return true;
+    } catch (error) {
+      console.error('Error creating student:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStudent = async (id: string, data: any) => {
+    try {
+      setLoading(true);
+      await studentsService.update(id, data);
+      await fetchStudents(page);
+      return true;
+    } catch (error) {
+      console.error('Error updating student:', error);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -38,6 +70,8 @@ export const useStudents = () => {
     totalPages,
     totalDocs,
     limit,
-    fetchStudents
+    fetchStudents,
+    createStudent,
+    updateStudent
   };
 };
