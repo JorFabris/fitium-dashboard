@@ -15,17 +15,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const RootRedirect = () => {
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
-  return <Navigate to={token ? ROUTES.dashboard : ROUTES.login} replace />;
+  if (token) {
+    return <Navigate to={ROUTES.dashboard} replace />;
+  }
+  return <>{children}</>;
 };
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
-        <Route path={ROUTES.login} element={<Login />} />
+        <Route path={ROUTES.login} element={<PublicRoute><Login /></PublicRoute>} />
         
         {/* Rutas protegidas dentro del MainLayout */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
@@ -38,7 +40,7 @@ function App() {
           <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />
         </Route>
 
-        <Route path="*" element={<RootRedirect />} />
+        <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={5000} />
     </BrowserRouter>

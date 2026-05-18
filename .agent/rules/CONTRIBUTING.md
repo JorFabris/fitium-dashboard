@@ -104,24 +104,32 @@ Supabase
 Vercel
 Clerk
 🌎 Internacionalización y Textos
-9. Textos centralizados
+9. Textos centralizados y Obligatorios
 
-[!IMPORTANT]
-Los textos NO deben estar hardcodeados.
+> [!IMPORTANT]
+> TODOS los textos visibles en la UI (títulos, botones, placeholders, mensajes de error, tooltips, opciones de menú, etc.) DEBEN estar obligatoriamente extraídos y definidos como constantes en el archivo `src/constants/texts.ts`. Está estrictamente prohibido hardcodear cadenas de texto directamente en los componentes de React o en las vistas (`.tsx`).
 
-Crear:
+Estructura requerida:
+- Crear o actualizar: `src/constants/texts.ts`
+- Agrupar por vista/contexto (ej. `COMMON_TEXTS`, `LOGIN_TEXTS`, `STUDENTS_TEXTS`).
 
-src/constants/texts.ts
+Ejemplo de uso:
 
-Ejemplo:
-
+```typescript
+// src/constants/texts.ts
 export const DASHBOARD_TEXTS = {
-  home: {
-    title: 'Dashboard',
-    subtitle: 'Resumen general del box',
-    addStudent: 'Agregar alumno',
-  },
+  TITLE: 'Dashboard',
+  SUBTITLE: 'Resumen general del box',
+  BUTTON_ADD_STUDENT: 'Agregar alumno',
 };
+```
+
+```tsx
+// src/pages/Dashboard.tsx
+import { DASHBOARD_TEXTS } from '@/constants/texts';
+
+<h1>{DASHBOARD_TEXTS.TITLE}</h1>
+```
 🌐 Axios y Servicios
 10. Axios centralizado
 src/services/api.ts

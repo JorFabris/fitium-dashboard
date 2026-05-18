@@ -5,6 +5,7 @@ import {
 import { useCoaches } from '@/hooks/useCoaches';
 import { formatDate } from '@/utils/formatters';
 import { CreateCoachSidebar } from '@/components/CreateCoachSidebar';
+import { COACHES_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 import type { Coach } from '@/types/coach';
 
 const Coaches: React.FC = () => {
@@ -52,9 +53,9 @@ const Coaches: React.FC = () => {
 
   const getStatusBadge = (active: boolean) => {
     if (active) {
-      return <span className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-100">Activo</span>;
+      return <span className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-100">{COMMON_TEXTS.STATUS_ACTIVE}</span>;
     }
-    return <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full border border-red-100">Inactivo</span>;
+    return <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full border border-red-100">{COMMON_TEXTS.STATUS_INACTIVE}</span>;
   };
 
   return (
@@ -63,25 +64,25 @@ const Coaches: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Coaches</h1>
-          <p className="text-sm text-gray-500 mt-1">Gestiona los entrenadores de tu box.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{COACHES_TEXTS.TITLE}</h1>
+          <p className="text-sm text-gray-500 mt-1">{COACHES_TEXTS.SUBTITLE}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Buscar coach..."
+              placeholder={COACHES_TEXTS.SEARCH_COACH}
               className="w-full md:w-64 pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
             />
           </div>
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
             <Filter className="w-4 h-4" />
-            Filtros
+            {COMMON_TEXTS.BUTTON_FILTERS}
           </button>
           <button onClick={handleOpenCreate} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm w-full sm:w-auto">
             <Plus className="w-4 h-4 shrink-0" />
-            Agregar coach
+            {COACHES_TEXTS.BUTTON_ADD}
           </button>
         </div>
       </div>
@@ -95,13 +96,13 @@ const Coaches: React.FC = () => {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Buscar por nombre o email..."
+              placeholder={COMMON_TEXTS.SEARCH_PLACEHOLDER}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
           <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm w-full sm:w-auto justify-center">
             <Download className="w-4 h-4" />
-            Exportar
+            {COMMON_TEXTS.BUTTON_EXPORT}
           </button>
         </div>
 
@@ -110,11 +111,11 @@ const Coaches: React.FC = () => {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-gray-100 bg-white">
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Coach</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Email</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Estado</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Fecha de creación</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">Acciones</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{COACHES_TEXTS.TABLE_COL_COACH}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{COACHES_TEXTS.TABLE_COL_EMAIL}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{COACHES_TEXTS.TABLE_COL_STATUS}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{COACHES_TEXTS.TABLE_COL_CREATED_AT}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">{COACHES_TEXTS.TABLE_COL_ACTIONS}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 relative">
@@ -127,7 +128,7 @@ const Coaches: React.FC = () => {
               ) : coaches.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="h-48 text-center text-gray-500">
-                    No se encontraron coaches.
+                    {COACHES_TEXTS.TABLE_NO_COACHES}
                   </td>
                 </tr>
               ) : (
@@ -180,7 +181,7 @@ const Coaches: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
           <p className="text-xs text-gray-500 font-medium">
-            Mostrando {coaches.length > 0 ? (page - 1) * limit + 1 : 0} a {Math.min(page * limit, totalDocs)} de {totalDocs} coaches
+            {COMMON_TEXTS.PAGINATION_SHOWING} {coaches.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} coaches
           </p>
           <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
             <button
@@ -189,17 +190,17 @@ const Coaches: React.FC = () => {
               className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
               <ChevronLeft className="w-3 h-3" />
-              Anterior
+              {COMMON_TEXTS.PAGINATION_PREV}
             </button>
             <div className="flex items-center gap-1 mx-2">
-              <span className="text-sm font-semibold text-gray-700">Pág {page} de {totalPages}</span>
+              <span className="text-sm font-semibold text-gray-700">{COMMON_TEXTS.PAGINATION_PAGE} {page} {COMMON_TEXTS.PAGINATION_OF} {totalPages}</span>
             </div>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading || totalPages === 0}
               className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
-              Siguiente
+              {COMMON_TEXTS.PAGINATION_NEXT}
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>

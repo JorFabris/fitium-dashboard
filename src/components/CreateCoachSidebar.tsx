@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
+import { COACHES_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 
 interface CreateCoachSidebarProps {
   isOpen: boolean;
@@ -81,8 +82,8 @@ export const CreateCoachSidebar: React.FC<CreateCoachSidebarProps> = ({
       <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-xl z-50 overflow-y-auto flex flex-col transition-transform transform translate-x-0">
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{coachData ? 'Editar coach' : 'Crear coach'}</h2>
-            <p className="text-xs text-gray-500 mt-1">{coachData ? 'Actualiza los datos del entrenador.' : 'Completa los datos para agregar un nuevo entrenador.'}</p>
+            <h2 className="text-lg font-bold text-gray-900">{coachData ? COACHES_TEXTS.SIDEBAR_TITLE_EDIT : COACHES_TEXTS.SIDEBAR_TITLE_CREATE}</h2>
+            <p className="text-xs text-gray-500 mt-1">{coachData ? COACHES_TEXTS.SIDEBAR_SUBTITLE_EDIT : COACHES_TEXTS.SIDEBAR_SUBTITLE_CREATE}</p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg transition-colors">
             <X className="w-5 h-5" />
@@ -93,28 +94,28 @@ export const CreateCoachSidebar: React.FC<CreateCoachSidebarProps> = ({
           <div className="p-6 space-y-8 flex-1">
             {/* Información personal */}
             <section>
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Información personal</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-4">{COACHES_TEXTS.SECTION_PERSONAL}</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nombre <span className="text-red-500">*</span></label>
-                  <input disabled={onlyView} required name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Ej: Marcos" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">{COACHES_TEXTS.LABEL_FIRST_NAME} <span className="text-red-500">*</span></label>
+                  <input disabled={onlyView} required name="firstName" value={formData.firstName} onChange={handleChange} placeholder={COACHES_TEXTS.PLACEHOLDER_FIRST_NAME} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Apellido <span className="text-red-500">*</span></label>
-                  <input disabled={onlyView} required name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Ej: Ruiz" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">{COACHES_TEXTS.LABEL_LAST_NAME} <span className="text-red-500">*</span></label>
+                  <input disabled={onlyView} required name="lastName" value={formData.lastName} onChange={handleChange} placeholder={COACHES_TEXTS.PLACEHOLDER_LAST_NAME} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email <span className="text-red-500">*</span></label>
-                  <input disabled={onlyView} required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Ej: marcos.ruiz@fitium.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">{COACHES_TEXTS.LABEL_EMAIL} <span className="text-red-500">*</span></label>
+                  <input disabled={onlyView} required type="email" name="email" value={formData.email} onChange={handleChange} placeholder={COACHES_TEXTS.PLACEHOLDER_EMAIL_INPUT} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" />
                 </div>
               </div>
             </section>
 
             {/* Credenciales de acceso */}
             <section>
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Credenciales de acceso</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-4">{COACHES_TEXTS.SECTION_CREDENTIALS}</h3>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Contraseña (opcional)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">{COACHES_TEXTS.LABEL_PASSWORD}</label>
                 <div className="relative">
                   <input 
                     disabled={onlyView}
@@ -122,7 +123,7 @@ export const CreateCoachSidebar: React.FC<CreateCoachSidebarProps> = ({
                     name="password" 
                     value={formData.password} 
                     onChange={handleChange} 
-                    placeholder="Mínimo 8 caracteres" 
+                    placeholder={COACHES_TEXTS.PLACEHOLDER_PASSWORD} 
                     className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500" 
                   />
                   <button 
@@ -133,15 +134,15 @@ export const CreateCoachSidebar: React.FC<CreateCoachSidebarProps> = ({
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-2">Si no defines una contraseña, el sistema generará una automáticamente.</p>
+                <p className="text-[11px] text-gray-500 mt-2">{COACHES_TEXTS.HELP_PASSWORD}</p>
               </div>
             </section>
 
             {/* Estado */}
             <section>
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Estado</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-4">{COACHES_TEXTS.SECTION_STATUS}</h3>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Estado del coach <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">{COACHES_TEXTS.LABEL_STATUS} <span className="text-red-500">*</span></label>
                 <div className="flex items-center gap-3 mt-2">
                   <button 
                     type="button" 
@@ -151,19 +152,19 @@ export const CreateCoachSidebar: React.FC<CreateCoachSidebarProps> = ({
                   >
                     <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.active ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
-                  <span className="text-sm text-gray-700 font-medium">{formData.active ? 'Activo' : 'Inactivo'}</span>
+                  <span className="text-sm text-gray-700 font-medium">{formData.active ? COMMON_TEXTS.STATUS_ACTIVE : COMMON_TEXTS.STATUS_INACTIVE}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-2">Los coaches inactivos no podrán acceder al sistema.</p>
+                <p className="text-[11px] text-gray-500 mt-2">{COACHES_TEXTS.HELP_STATUS}</p>
               </div>
             </section>
           </div>
 
           <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3 bg-white sticky bottom-0">
             <button hidden={onlyView} type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              Cancelar
+              {COMMON_TEXTS.BUTTON_CANCEL}
             </button>
             <button hidden={onlyView} type="submit" disabled={loading} className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
-              {loading ? (coachData ? 'Guardando...' : 'Creando...') : (coachData ? 'Guardar cambios' : 'Crear coach')}
+              {loading ? (coachData ? COACHES_TEXTS.BUTTON_SAVING : COACHES_TEXTS.BUTTON_CREATING) : (coachData ? COMMON_TEXTS.BUTTON_SAVE : COACHES_TEXTS.BUTTON_CREATE_COACH)}
             </button>
           </div>
         </form>
