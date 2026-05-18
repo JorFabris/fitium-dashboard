@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
+import Coaches from './pages/Coaches';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
@@ -14,10 +15,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const RootRedirect = () => {
+  const token = localStorage.getItem('token');
+  return <Navigate to={token ? ROUTES.dashboard : ROUTES.login} replace />;
+};
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<RootRedirect />} />
         <Route path={ROUTES.login} element={<Login />} />
         
         {/* Rutas protegidas dentro del MainLayout */}
@@ -25,12 +32,13 @@ function App() {
           <Route path={ROUTES.dashboard} element={<Dashboard />} />
           {/* Aquí irán las otras rutas */}
           <Route path={ROUTES.students} element={<Students />} />
+          <Route path={ROUTES.coaches} element={<Coaches />} />
           <Route path={ROUTES.classes} element={<div className="p-8">Sección de Clases en construcción</div>} />
           <Route path={ROUTES.payments} element={<div className="p-8">Sección de Pagos en construcción</div>} />
           <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />
         </Route>
 
-        <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
+        <Route path="*" element={<RootRedirect />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={5000} />
     </BrowserRouter>

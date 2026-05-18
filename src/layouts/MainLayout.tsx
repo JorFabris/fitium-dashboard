@@ -50,7 +50,7 @@ const MainLayout: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: ROUTES.dashboard, icon: LayoutDashboard },
     { name: 'Alumnos', path: ROUTES.students, icon: Users },
-    { name: 'Coaches', path: '/coaches', icon: UserSquare2 },
+    { name: 'Coaches', path: ROUTES.coaches, icon: UserSquare2 },
     { name: 'Clases', path: ROUTES.classes, icon: Calendar },
     { name: 'Rutinas', path: '/routines', icon: ClipboardList },
     { name: 'Competencias', path: '/competitions', icon: Trophy },
