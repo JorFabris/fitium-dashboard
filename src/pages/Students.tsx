@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useStudents } from '../hooks/useStudents';
 import { formatDate, formatCurrency } from '@/utils/formatters';
+import { STUDENTS_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 import { CreateStudentSidebar } from '@/components/CreateStudentSidebar';
 import type { Student } from '@/types/student';
 
@@ -53,9 +54,33 @@ const Students: React.FC = () => {
 
   const getStatusBadge = (active: boolean) => {
     if (active) {
-      return <span className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-100">Activo</span>;
+      return <span className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-100">{COMMON_TEXTS.STATUS_ACTIVE}</span>;
     }
-    return <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full border border-red-100">Inactivo</span>;
+    return <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full border border-red-100">{COMMON_TEXTS.STATUS_INACTIVE}</span>;
+  };
+
+  const getPaymentBadge = (lastPayment: any) => {
+    if (!lastPayment || (!lastPayment.paidAt && !lastPayment.dueDate)) {
+      return <span className="px-2.5 py-1 bg-gray-50 text-gray-600 text-xs font-semibold rounded-full border border-gray-200">{STUDENTS_TEXTS.BADGE_SIN_PAGO}</span>;
+    }
+
+    const paymentDate = new Date(lastPayment.paidAt || lastPayment.dueDate);
+
+    if (isNaN(paymentDate.getTime())) {
+      return <span className="px-2.5 py-1 bg-gray-50 text-gray-600 text-xs font-semibold rounded-full border border-gray-200">{STUDENTS_TEXTS.BADGE_SIN_PAGO}</span>;
+    }
+
+    const expirationDate = new Date(paymentDate);
+    expirationDate.setMonth(expirationDate.getMonth() + 1);
+
+    const today = new Date();
+    const isExpired = today > expirationDate;
+
+    if (isExpired) {
+      return <span className="px-2.5 py-1 bg-red-50 text-red-600 text-[10px] font-bold rounded-full border border-red-100">{STUDENTS_TEXTS.BADGE_VENCIDA}</span>;
+    }
+
+    return <span className="px-2.5 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-full border border-green-100">{STUDENTS_TEXTS.BADGE_EN_TERMINO}</span>;
   };
 
   return (
@@ -64,8 +89,8 @@ const Students: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Estudiantes</h1>
-          <p className="text-sm text-gray-500 mt-1">Gestiona todos los miembros de tu box.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{STUDENTS_TEXTS.TITLE}</h1>
+          <p className="text-sm text-gray-500 mt-1">{STUDENTS_TEXTS.SUBTITLE}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
@@ -84,39 +109,10 @@ const Students: React.FC = () => {
           </button>
           <button onClick={handleOpenCreate} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm w-full sm:w-auto">
             <Plus className="w-4 h-4 shrink-0" />
-            Agregar estudiante
+            {STUDENTS_TEXTS.BUTTON_ADD}
           </button>
         </div>
       </div>
-
-      {/* KPIs */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {kpis.map((kpi, index) => (
-          <div key={index} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-xl shrink-0 ${kpi.iconBg}`}>
-                <kpi.icon className={`w-5 h-5 ${kpi.iconColor}`} />
-              </div>
-              <div className="flex-1 pt-1 min-w-0">
-                <p className="text-sm font-medium text-gray-500 leading-none truncate">{kpi.title}</p>
-                <h3 className="text-2xl font-bold text-gray-900 mt-2 leading-none">{kpi.value}</h3>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center justify-between">
-              {kpi.actionText ? (
-                <button className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                  {kpi.actionText} <ChevronRight className="w-3 h-3" />
-                </button>
-              ) : (
-                <span className={`text-xs font-medium flex items-center gap-1 ${kpi.isPositive ? 'text-green-600' : 'text-red-500'}`}>
-                  {kpi.isPositive ? '↑' : '↓'} {kpi.change} <span className="text-gray-400 font-normal truncate">{kpi.textBottom}</span>
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div> */}
-
       {/* Table Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
 
@@ -127,7 +123,7 @@ const Students: React.FC = () => {
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar por nombre o email..."
+                placeholder={STUDENTS_TEXTS.SEARCH_STUDENT_OR_EMAIL}
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -154,13 +150,13 @@ const Students: React.FC = () => {
 
             <button className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 mt-5">
               <Filter className="w-4 h-4 text-gray-500" />
-              Filtros
+              {COMMON_TEXTS.BUTTON_FILTERS}
             </button>
           </div>
 
           <button className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 w-full xl:w-auto">
             <Download className="w-4 h-4 text-gray-500" />
-            Exportar
+            {COMMON_TEXTS.BUTTON_EXPORT}
           </button>
         </div>
 
@@ -169,11 +165,11 @@ const Students: React.FC = () => {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-[#F8F9FA] border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Estudiante</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Contacto</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Estado</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">Próximo pago</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">Acciones</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{STUDENTS_TEXTS.TABLE_COL_STUDENT}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{STUDENTS_TEXTS.TABLE_COL_CONTACT}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{STUDENTS_TEXTS.TABLE_COL_STATUS}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{STUDENTS_TEXTS.TABLE_COL_NEXT_PAYMENT}</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">{STUDENTS_TEXTS.TABLE_COL_ACTIONS}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 relative">
@@ -186,7 +182,7 @@ const Students: React.FC = () => {
               ) : students.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="h-48 text-center text-gray-500">
-                    No se encontraron estudiantes.
+                    {STUDENTS_TEXTS.TABLE_NO_STUDENTS}
                   </td>
                 </tr>
               ) : (
@@ -207,13 +203,13 @@ const Students: React.FC = () => {
 
                           <div>
                             <p className="font-bold text-gray-900">{student.firstName} {student.lastName}</p>
-                            <p className="text-xs text-gray-500">Desde {enrollDate}</p>
+                            <p className="text-xs text-gray-500">{STUDENTS_TEXTS.LABEL_DESDE} {enrollDate}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{student.email || 'Sin email'}</p>
-                        <p className="text-xs text-gray-500">{student.phone || 'Sin teléfono'}</p>
+                        <p className="text-gray-900">{student.email || STUDENTS_TEXTS.BADGE_SIN_EMAIL}</p>
+                        <p className="text-xs text-gray-500">{student.phone || STUDENTS_TEXTS.BADGE_SIN_TELEFONO}</p>
                       </td>
 
 
@@ -221,8 +217,14 @@ const Students: React.FC = () => {
                         {getStatusBadge(student.active)}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{formatDate(student.lastPayment?.dueDate)}</p>
-                        <p className="text-xs text-gray-500">{formatCurrency(student.lastPayment?.amount)}</p>
+                        <div className="flex flex-col gap-1 items-start">
+                          {getPaymentBadge(student.lastPayment)}
+                          {student.lastPayment && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formatDate(student.lastPayment.paidAt || student.lastPayment.dueDate)} • {formatCurrency(student.lastPayment.amount)}
+                            </p>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -248,7 +250,7 @@ const Students: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
           <p className="text-xs text-gray-500 font-medium">
-            Mostrando {students.length > 0 ? (page - 1) * limit + 1 : 0} a {Math.min(page * limit, totalDocs)} de {totalDocs} estudiantes
+            {COMMON_TEXTS.PAGINATION_SHOWING} {students.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} estudiantes
           </p>
           <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
             <button
@@ -257,17 +259,17 @@ const Students: React.FC = () => {
               className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
               <ChevronLeft className="w-3 h-3" />
-              Anterior
+              {COMMON_TEXTS.PAGINATION_PREV}
             </button>
             <div className="flex items-center gap-1 mx-2">
-              <span className="text-sm font-semibold text-gray-700">Pág {page} de {totalPages}</span>
+              <span className="text-sm font-semibold text-gray-700">{COMMON_TEXTS.PAGINATION_PAGE} {page} {COMMON_TEXTS.PAGINATION_OF} {totalPages}</span>
             </div>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading || totalPages === 0}
               className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
-              Siguiente
+              {COMMON_TEXTS.PAGINATION_NEXT}
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
