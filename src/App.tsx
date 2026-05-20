@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Coaches from './pages/Coaches';
+import Routines from './pages/Routines';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
@@ -35,6 +36,7 @@ function App() {
           {/* Aquí irán las otras rutas */}
           <Route path={ROUTES.students} element={<Students />} />
           <Route path={ROUTES.coaches} element={<Coaches />} />
+          <Route path={ROUTES.routines} element={<Routines />} />
           <Route path={ROUTES.classes} element={<div className="p-8">Sección de Clases en construcción</div>} />
           <Route path={ROUTES.payments} element={<div className="p-8">Sección de Pagos en construcción</div>} />
           <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />

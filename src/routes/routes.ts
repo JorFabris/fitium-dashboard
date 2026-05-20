@@ -4,6 +4,7 @@ export const ROUTES = {
   students: '/students',
   coaches: '/coaches',
   classes: '/classes',
+  routines: '/routines',
   payments: '/payments',
   settings: '/settings',
 };

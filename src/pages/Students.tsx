@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Search, Bell, Plus, Users, UserPlus, Calendar, CalendarX2,
+  Search, Plus, Bell,
   Filter, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { useStudents } from '../hooks/useStudents';
@@ -282,6 +282,7 @@ const Students: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
         onSubmit={handleSidebarSubmit}
         studentData={selectedStudent}
+        onlyView={viewMode === 'view'}
       />
     </div>
   );

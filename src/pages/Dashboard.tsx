@@ -1,10 +1,9 @@
 import React from 'react';
 import { 
   DollarSign, Users, AlertTriangle, Calendar, ChevronRight,
-  TrendingUp, TrendingDown, Clock, Bell, Plus, Calendar as CalendarIcon,
-  UserPlus, CreditCard, ShoppingCart, CalendarPlus, Trophy, Megaphone,
-  ArrowRight, ShieldAlert, AlertCircle, AlertOctagon,
-  MoreHorizontal
+  TrendingUp, TrendingDown, Bell, Plus, Calendar as CalendarIcon,
+  CreditCard, ShoppingCart, CalendarPlus, Trophy, Megaphone,
+  ArrowRight, ShieldAlert, AlertCircle, AlertOctagon
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -34,12 +33,6 @@ ChartJS.register(
 const SparklineBlue = () => (
   <svg width="60" height="24" viewBox="0 0 60 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M2 18L15 12L25 16L40 6L58 14" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const SparklineGray = () => (
-  <svg width="60" height="24" viewBox="0 0 60 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 18L15 12L25 16L40 6L58 14" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 

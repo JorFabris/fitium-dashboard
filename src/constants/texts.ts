@@ -150,3 +150,17 @@ export const STUDENTS_TEXTS = {
   KPI_VS_LAST_MONTH: 'vs mes anterior',
   KPI_VER_LISTA: 'Ver lista'
 };
+
+export const ROUTINES_TEXTS = {
+  TITLE: 'Rutinas',
+  SUBTITLE: 'Gestiona las rutinas de entrenamiento asignadas a tus estudiantes.',
+  SEARCH_PLACEHOLDER: 'Buscar rutina o estudiante...',
+  NEW_ROUTINE: 'Nueva rutina',
+  TABLE_ROUTINE: 'Rutina',
+  TABLE_STUDENT: 'Estudiante',
+  TABLE_DAYS: 'Días',
+  TABLE_PERIOD: 'Período',
+  TABLE_COACH: 'Entrenador',
+  TABLE_STATUS: 'Estado',
+  TABLE_ACTIONS: 'Acciones',
+};
