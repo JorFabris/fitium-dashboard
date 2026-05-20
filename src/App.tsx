@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Coaches from './pages/Coaches';
 import Routines from './pages/Routines';
+import Classes from './pages/Classes';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
@@ -37,7 +38,7 @@ function App() {
           <Route path={ROUTES.students} element={<Students />} />
           <Route path={ROUTES.coaches} element={<Coaches />} />
           <Route path={ROUTES.routines} element={<Routines />} />
-          <Route path={ROUTES.classes} element={<div className="p-8">Sección de Clases en construcción</div>} />
+          <Route path={ROUTES.classes} element={<Classes />} />
           <Route path={ROUTES.payments} element={<div className="p-8">Sección de Pagos en construcción</div>} />
           <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />
         </Route>

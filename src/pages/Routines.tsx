@@ -19,14 +19,23 @@ export default function Routines() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedRoutine, setSelectedRoutine] = useState<any | null>(null);
+  const [isViewOnly, setIsViewOnly] = useState(false);
 
   const handleOpenCreate = () => {
     setSelectedRoutine(null);
+    setIsViewOnly(false);
     setIsSidebarOpen(true);
   };
 
   const handleOpenEdit = (routine: any) => {
     setSelectedRoutine(routine);
+    setIsViewOnly(false);
+    setIsSidebarOpen(true);
+  };
+
+  const handleOpenView = (routine: any) => {
+    setSelectedRoutine(routine);
+    setIsViewOnly(true);
     setIsSidebarOpen(true);
   };
 
@@ -189,7 +198,7 @@ export default function Routines() {
                       <td className="px-6 py-4">{getStatusBadge(routine.active)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
+                          <button onClick={() => handleOpenView(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
                             <Eye className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
@@ -234,6 +243,7 @@ export default function Routines() {
         onClose={() => setIsSidebarOpen(false)}
         onSubmit={handleSidebarSubmit}
         routineData={selectedRoutine}
+        isViewOnly={isViewOnly}
       />
     </div>
   );

@@ -7,6 +7,7 @@ interface CreateRoutineSidebarProps {
   onClose: () => void;
   onSubmit: (data: any, id?: string) => Promise<void>;
   routineData?: any | null;
+  isViewOnly?: boolean;
 }
 
 const dayMapping: Record<string, 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'> = {
@@ -33,7 +34,8 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  routineData
+  routineData,
+  isViewOnly = false
 }) => {
   const [students, setStudents] = useState<any[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
@@ -221,8 +223,12 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{routineData ? 'Editar rutina' : 'Nueva rutina'}</h2>
-            <p className="text-xs text-gray-500 mt-1">Completa la información para crear una nueva rutina de entrenamiento.</p>
+            <h2 className="text-lg font-bold text-gray-900">
+              {isViewOnly ? 'Ver rutina' : routineData ? 'Editar rutina' : 'Nueva rutina'}
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              {isViewOnly ? 'Detalle completo de la rutina de entrenamiento.' : 'Completa la información para crear una nueva rutina de entrenamiento.'}
+            </p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg transition-colors">
             <X className="w-5 h-5" />
@@ -249,18 +255,20 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <input
                   required
                   type="text"
-                  placeholder="Buscar estudiante por nombre..."
+                  readOnly={isViewOnly}
+                  placeholder={isViewOnly ? "" : "Buscar estudiante por nombre..."}
                   value={studentSearch}
-                  onFocus={() => setShowStudentSuggestions(true)}
+                  onFocus={() => !isViewOnly && setShowStudentSuggestions(true)}
                   onChange={(e) => {
+                    if (isViewOnly) return;
                     setStudentSearch(e.target.value);
                     if (selectedStudent && e.target.value !== selectedStudent.name) {
                       setSelectedStudent(null);
                     }
                   }}
-                  className={`w-full ${selectedStudent ? 'pl-10' : 'pl-9'} pr-9 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium`}
+                  className={`w-full ${selectedStudent ? 'pl-10' : 'pl-9'} pr-9 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 />
-                {selectedStudent && (
+                {selectedStudent && !isViewOnly && (
                   <button
                     type="button"
                     onClick={() => {
@@ -320,26 +328,28 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <input
                   required
                   name="name"
+                  readOnly={isViewOnly}
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Ej: Fuerza e Hipertrofia"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium"
+                  placeholder={isViewOnly ? "" : "Ej: Fuerza e Hipertrofia"}
+                  className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-gray-700">Descripción (opcional)</label>
-                  <span className="text-[10px] text-gray-400">{formData.description.length}/300</span>
+                  {!isViewOnly && <span className="text-[10px] text-gray-400">{formData.description.length}/300</span>}
                 </div>
                 <textarea
                   name="description"
+                  readOnly={isViewOnly}
                   maxLength={300}
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Describe el objetivo de la rutina, beneficios y recomendaciones..."
+                  placeholder={isViewOnly ? "Sin descripción" : "Describe el objetivo de la rutina, beneficios y recomendaciones..."}
                   rows={3}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-none font-medium text-gray-600 leading-normal"
+                  className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-none font-medium text-gray-600 leading-normal ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 />
               </div>
             </div>
@@ -357,9 +367,10 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                     required
                     type="date"
                     name="startDate"
+                    readOnly={isViewOnly}
                     value={formData.startDate}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium"
+                    className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                   />
                 </div>
                 <div>
@@ -367,9 +378,10 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                   <input
                     type="date"
                     name="endDate"
+                    readOnly={isViewOnly}
                     value={formData.endDate}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium"
+                    className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                   />
                 </div>
               </div>
@@ -399,12 +411,14 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                       <button
                         key={day.key}
                         type="button"
-                        onClick={() => toggleDay(day.key)}
+                        onClick={() => !isViewOnly && toggleDay(day.key)}
                         className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
                           isSelected
                             ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
+                            : isViewOnly
+                              ? 'bg-white border-gray-200 text-gray-400'
+                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        } ${isViewOnly ? 'cursor-default' : ''}`}
                       >
                         {day.label}
                       </button>
@@ -423,9 +437,10 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">Entrenador (creado por)</label>
                 <select
                   name="coach"
+                  disabled={isViewOnly}
                   value={formData.coach}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium text-gray-700 bg-white"
+                  className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium text-gray-700 bg-white ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 >
                   <option value="">Seleccionar entrenador</option>
                   <option value="Marcos Ruiz">Marcos Ruiz</option>
@@ -447,8 +462,8 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <div className="flex items-center gap-3 mt-2">
                   <button
                     type="button"
-                    onClick={() => setFormData(p => ({ ...p, active: !p.active }))}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors focus:outline-none ${formData.active ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    onClick={() => !isViewOnly && setFormData(p => ({ ...p, active: !p.active }))}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors focus:outline-none ${formData.active ? 'bg-blue-600' : 'bg-gray-200'} ${isViewOnly ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
                   >
                     <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.active ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
@@ -462,30 +477,41 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
 
           {/* Sticky Footer */}
           <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3 bg-white sticky bottom-0 z-10 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
-            >
-              {loading ? (
-                <span>Guardando...</span>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>{routineData ? 'Guardar cambios' : 'Crear rutina'}</span>
-                </>
-              )}
-            </button>
+            {isViewOnly ? (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                Aceptar
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
+                >
+                  {loading ? (
+                    <span>Guardando...</span>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>{routineData ? 'Guardar cambios' : 'Crear rutina'}</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </div>
         </form>
-
       </div>
     </>
   );
