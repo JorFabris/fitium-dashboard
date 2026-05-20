@@ -6,6 +6,29 @@ import {
   ArrowRight, ShieldAlert, AlertCircle, AlertOctagon,
   MoreHorizontal
 } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 // Mock SVG Sparklines
 const SparklineBlue = () => (
@@ -37,6 +60,100 @@ const Dashboard: React.FC = () => {
     { rank: 4, name: 'Lucía Fernández', classes: 20, attendance: '85%', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop', color: 'bg-gray-100' },
     { rank: 5, name: 'Tomás Díaz', classes: 19, attendance: '84%', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop', color: 'bg-gray-100' },
   ];
+
+  const chartData = {
+    labels: ['29 Abr', '6 May', '13 May', '20 May', '27 May'],
+    datasets: [
+      {
+        label: 'Ingresos',
+        data: [1.2, 1.5, 1.4, 2.0, 1.8],
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Alumnos activos',
+        data: [0.8, 1.0, 1.2, 1.1, 1.5],
+        borderColor: '#10B981',
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        tension: 0.4,
+      },
+      {
+        label: 'Asistencia (%)',
+        data: [1.0, 0.9, 1.1, 1.3, 1.4],
+        borderColor: '#6B7280',
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        tension: 0.4,
+      }
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        titleColor: '#1F2937',
+        bodyColor: '#4B5563',
+        borderColor: '#E5E7EB',
+        borderWidth: 1,
+        padding: 10,
+        boxPadding: 4,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 2.5,
+        ticks: {
+          callback: function(value: any) {
+            return value === 0 ? '0' : value + 'M';
+          },
+          font: {
+            size: 11,
+          },
+          color: '#9CA3AF'
+        },
+        grid: {
+          color: '#F3F4F6',
+        },
+        border: {
+          display: false,
+          dash: [4, 4]
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+          color: '#9CA3AF'
+        },
+        border: {
+          display: false,
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest' as const,
+      axis: 'x' as const,
+      intersect: false
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -159,34 +276,8 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex-1 relative min-h-[200px] flex flex-col justify-between text-xs text-gray-400">
-             {/* Mock Chart Layout */}
-             <div className="absolute inset-0 pt-2 flex flex-col justify-between pointer-events-none">
-               {[2.5, 2, 1.5, 1, 0.5, 0].map(val => (
-                 <div key={val} className="flex items-center gap-4 w-full">
-                   <span className="w-8 text-right">{val === 0 ? '0' : `${val}M`}</span>
-                   <div className="flex-1 border-t border-gray-100" />
-                 </div>
-               ))}
-             </div>
-             
-             {/* Simple lines to mimic a chart visually for now */}
-             <div className="absolute inset-0 left-12 flex items-center justify-center opacity-60">
-                <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none">
-                  <path d="M0 150 Q 100 130, 200 120 T 400 100 T 500 80" fill="none" stroke="#2563EB" strokeWidth="3" />
-                  <path d="M0 180 Q 100 150, 200 160 T 400 140 T 500 110" fill="none" stroke="#10B981" strokeWidth="2" />
-                  <path d="M0 190 Q 100 180, 200 170 T 400 180 T 500 150" fill="none" stroke="#6B7280" strokeWidth="2" />
-                </svg>
-             </div>
-
-             {/* Chart legend bottom */}
-             <div className="absolute bottom-0 left-12 right-0 flex items-center justify-between pt-2 px-2 pb-1 bg-white">
-                <span>29 Abr</span>
-                <span>6 May</span>
-                <span>13 May</span>
-                <span>20 May</span>
-                <span>27 May</span>
-             </div>
+          <div className="flex-1 relative min-h-[240px] w-full mt-2">
+             <Line data={chartData} options={chartOptions} />
           </div>
 
           <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-gray-50 text-xs font-medium text-gray-600">
