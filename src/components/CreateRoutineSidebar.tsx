@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Check, Plus } from 'lucide-react';
+import { studentsService } from '@/services/students.service';
 
 interface CreateRoutineSidebarProps {
   isOpen: boolean;
@@ -8,28 +9,66 @@ interface CreateRoutineSidebarProps {
   routineData?: any | null;
 }
 
+const dayMapping: Record<string, 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'> = {
+  'Lun': 'monday',
+  'Mar': 'tuesday',
+  'Mié': 'wednesday',
+  'Jue': 'thursday',
+  'Vie': 'friday',
+  'Sáb': 'saturday',
+  'Dom': 'sunday'
+};
+
+const reverseDayMapping: Record<string, string> = {
+  'monday': 'Lun',
+  'tuesday': 'Mar',
+  'wednesday': 'Mié',
+  'thursday': 'Jue',
+  'friday': 'Vie',
+  'saturday': 'Sáb',
+  'sunday': 'Dom'
+};
+
 export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
   isOpen,
   onClose,
   onSubmit,
   routineData
 }) => {
+  const [students, setStudents] = useState<any[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
 
-  // Mock student list for autocomplete
-  const mockStudents = [
-    { id: '1', name: 'Juan Pérez', img: 'https://i.pravatar.cc/150?u=1' },
-    { id: '2', name: 'Ana López', img: 'https://i.pravatar.cc/150?u=2' },
-    { id: '3', name: 'Martín Ruiz', img: 'https://i.pravatar.cc/150?u=3' },
-    { id: '4', name: 'Lucía Fernández', img: 'https://i.pravatar.cc/150?u=4' },
-    { id: '5', name: 'Tomás Díaz', img: 'https://i.pravatar.cc/150?u=5' },
-    { id: '6', name: 'Valentina Morales', img: 'https://i.pravatar.cc/150?u=6' },
-    { id: '7', name: 'Nicolás Castro', img: 'https://i.pravatar.cc/150?u=7' },
-  ];
+  // Fetch real students when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      studentsService.getPaginated(1, 100).then((res) => {
+        if (res && res.data) {
+          const mapped = res.data.map((s: any) => ({
+            id: s._id,
+            name: `${s.firstName} ${s.lastName}`,
+            img: s.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop'
+          }));
+          setStudents(mapped);
+          
+          // If editing and student data is populated but selection isn't loaded yet
+          if (routineData && routineData.student) {
+            const studentId = typeof routineData.student === 'object' ? routineData.student._id : routineData.student;
+            const found = mapped.find((s: any) => s.id === studentId);
+            if (found) {
+              setSelectedStudent(found);
+              setStudentSearch(found.name);
+            }
+          }
+        }
+      }).catch((err) => {
+        console.error('Error fetching students:', err);
+      });
+    }
+  }, [isOpen, routineData]);
 
-  const filteredStudents = mockStudents.filter(student =>
+  const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(studentSearch.toLowerCase())
   );
 
@@ -80,17 +119,46 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
         description: routineData.description || '',
         startDate: routineData.startDate ? new Date(routineData.startDate).toISOString().split('T')[0] : '',
         endDate: routineData.endDate ? new Date(routineData.endDate).toISOString().split('T')[0] : '',
-        daysCount: routineData.days ? `${routineData.days} días` : 'Seleccionar días',
-        coach: routineData.coach || '',
-        active: routineData.status === 'Activa'
+        daysCount: routineData.days ? `${routineData.days.length} días` : 'Seleccionar días',
+        coach: routineData.createdBy || '',
+        active: routineData.active ?? true
       });
-      // Setup mock student
-      const foundStudent = mockStudents.find(s => s.name === routineData.student);
-      if (foundStudent) {
-        setSelectedStudent(foundStudent);
-        setStudentSearch(foundStudent.name);
+
+      if (routineData.student) {
+        if (typeof routineData.student === 'object') {
+          const studentObj = routineData.student;
+          const sName = `${studentObj.firstName} ${studentObj.lastName}`;
+          setSelectedStudent({
+            id: studentObj._id,
+            name: sName,
+            img: studentObj.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop'
+          });
+          setStudentSearch(sName);
+        } else {
+          // If it's a string, try finding in already loaded students
+          const found = students.find(s => s.id === routineData.student);
+          if (found) {
+            setSelectedStudent(found);
+            setStudentSearch(found.name);
+          } else {
+            setSelectedStudent({ id: routineData.student, name: 'Cargando...', img: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' });
+            setStudentSearch('Cargando...');
+          }
+        }
       }
-      setSelectedDays(Array.from({ length: routineData.days || 3 }, (_, i) => weekdays[i].key));
+
+      if (Array.isArray(routineData.days)) {
+        const initialSelected = routineData.days
+          .map((d: any) => reverseDayMapping[d.day])
+          .filter(Boolean);
+        setSelectedDays(initialSelected);
+        setFormData(prev => ({
+          ...prev,
+          daysCount: `${initialSelected.length} días seleccionados (${initialSelected.join(', ')})`
+        }));
+      } else {
+        setSelectedDays([]);
+      }
     } else if (!isOpen) {
       setFormData({
         name: '',
@@ -105,7 +173,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       setStudentSearch('');
       setSelectedDays([]);
     }
-  }, [routineData, isOpen]);
+  }, [routineData, isOpen, students.length]);
 
   if (!isOpen) return null;
 
@@ -122,15 +190,25 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     }
     setLoading(true);
 
+    // Map selected days to backend Format: IWorkoutDay[]
+    const mappedDays = selectedDays.map(dayKey => ({
+      day: dayMapping[dayKey],
+      label: dayKey,
+      exercises: []
+    }));
+
     const payload = {
-      ...formData,
-      student: selectedStudent.name,
-      studentImg: selectedStudent.img,
-      days: selectedDays.length || 3,
-      status: formData.active ? 'Activa' : 'Pausada'
+      student: selectedStudent.id,
+      name: formData.name,
+      description: formData.description,
+      startDate: formData.startDate ? new Date(formData.startDate).toISOString() : new Date().toISOString(),
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+      days: mappedDays,
+      createdBy: formData.coach || 'Marcos Ruiz',
+      active: formData.active
     };
 
-    await onSubmit(payload, routineData?.id);
+    await onSubmit(payload, routineData?._id);
     setLoading(false);
     onClose();
   };
@@ -306,13 +384,12 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   Días <span className="text-red-500">*</span>
                 </label>
-                <select
-                  disabled
+                <input
+                  type="text"
+                  readOnly
                   value={formData.daysCount}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium cursor-not-allowed outline-none"
-                >
-                  <option>{formData.daysCount}</option>
-                </select>
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-500 font-semibold cursor-not-allowed outline-none select-none"
+                />
                 
                 {/* Day Selector Chips */}
                 <div className="flex flex-wrap gap-2 mt-3">

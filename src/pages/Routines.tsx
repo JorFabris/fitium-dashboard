@@ -2,18 +2,21 @@ import { useState } from 'react';
 import { Search, Filter, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
 import { ROUTINES_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 import { CreateRoutineSidebar } from '@/components/CreateRoutineSidebar';
+import { useRoutines } from '@/hooks/useRoutines';
 
 export default function Routines() {
-  const [routines, setRoutines] = useState([
-    { id: 1, name: 'Fuerza e Hipertrofia', description: 'Rutina enfocada en desarrollo de fuerza y aumento de masa muscular.', student: 'Juan Pérez', studentImg: 'https://i.pravatar.cc/150?u=1', days: 5, period: '20/05/2024 - 20/07/2024', coach: 'Marcos Ruiz', status: 'Activa' },
-    { id: 2, name: 'Quema de Grasa Avanzado', description: 'Entrenamientos de alta intensidad para pérdida de grasa.', student: 'Ana López', studentImg: 'https://i.pravatar.cc/150?u=2', days: 4, period: '15/05/2024 - 15/07/2024', coach: 'Sofía Gómez', status: 'Activa' },
-    { id: 3, name: 'Resistencia Funcional', description: 'Mejora de resistencia cardiovascular y capacidad funcional.', student: 'Martín Ruiz', studentImg: 'https://i.pravatar.cc/150?u=3', days: 5, period: '10/05/2024 - 10/06/2024', coach: 'Juan Pérez', status: 'Activa' },
-    { id: 4, name: 'Movilidad y Core', description: 'Rutina de movilidad, estabilidad y fortalecimiento del core.', student: 'Lucía Fernández', studentImg: 'https://i.pravatar.cc/150?u=4', days: 3, period: '01/05/2024 - 01/06/2024', coach: 'Sofía Gómez', status: 'Finalizada' },
-    { id: 5, name: 'Fuerza Máxima', description: 'Entrenamiento enfocado en aumentar fuerza máxima en ejercicios principales.', student: 'Tomás Díaz', studentImg: 'https://i.pravatar.cc/150?u=5', days: 4, period: '28/04/2024 - 28/06/2024', coach: 'Marcos Ruiz', status: 'Activa' },
-    { id: 6, name: 'Acondicionamiento General', description: 'Mejora general de condición física con entrenamientos variados.', student: 'Valentina Morales', studentImg: 'https://i.pravatar.cc/150?u=6', days: 4, period: '25/04/2024 - 25/06/2024', coach: 'Juan Pérez', status: 'Pausada' },
-    { id: 7, name: 'Rehabilitación Hombro', description: 'Rutina específica para recuperación y fortalecimiento del hombro.', student: 'Nicolás Castro', studentImg: 'https://i.pravatar.cc/150?u=7', days: 3, period: '15/04/2024 - 15/05/2024', coach: 'Sofía Gómez', status: 'Activa' },
-  ]);
+  const {
+    routines,
+    loading,
+    page,
+    setPage,
+    totalPages,
+    totalDocs,
+    createRoutine,
+    updateRoutine
+  } = useRoutines();
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedRoutine, setSelectedRoutine] = useState<any | null>(null);
 
@@ -29,39 +32,39 @@ export default function Routines() {
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
     if (id) {
-      setRoutines(prev => prev.map(r => r.id.toString() === id.toString() ? { ...r, ...data } : r));
+      await updateRoutine(id, data);
     } else {
-      const newId = routines.length > 0 ? Math.max(...routines.map(r => r.id)) + 1 : 1;
-      const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const endStr = data.endDate ? new Date(data.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin límite';
-      const period = `${todayStr} - ${endStr}`;
-      
-      setRoutines(prev => [...prev, {
-        id: newId,
-        name: data.name,
-        description: data.description,
-        student: data.student,
-        studentImg: data.studentImg || 'https://i.pravatar.cc/150?u=temp',
-        days: data.days,
-        period,
-        coach: data.coach || 'Marcos Ruiz',
-        status: data.status
-      }]);
+      await createRoutine(data);
+    }
+    setIsSidebarOpen(false);
+  };
+
+  const getStatusBadge = (active: boolean) => {
+    if (active) {
+      return <span className="px-2.5 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-full border border-green-200">Activa</span>;
+    } else {
+      return <span className="px-2.5 py-1 bg-orange-50 text-orange-600 text-xs font-semibold rounded-full border border-orange-200">Pausada</span>;
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Activa':
-        return <span className="px-2.5 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-full border border-green-200">{status}</span>;
-      case 'Finalizada':
-        return <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full border border-gray-200">{status}</span>;
-      case 'Pausada':
-        return <span className="px-2.5 py-1 bg-orange-50 text-orange-600 text-xs font-semibold rounded-full border border-orange-200">{status}</span>;
-      default:
-        return null;
+  // Filter routines locally by search query
+  const filteredRoutines = routines.filter((routine) => {
+    const nameMatch = routine.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const descriptionMatch = (routine.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    
+    let studentMatch = false;
+    if (routine.student) {
+      if (typeof routine.student === 'object') {
+        studentMatch = `${routine.student.firstName} ${routine.student.lastName}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+      } else {
+        studentMatch = routine.student.toLowerCase().includes(searchQuery.toLowerCase());
+      }
     }
-  };
+
+    return nameMatch || descriptionMatch || studentMatch;
+  });
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
@@ -75,6 +78,8 @@ export default function Routines() {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={ROUTINES_TEXTS.SEARCH_PLACEHOLDER}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -116,66 +121,110 @@ export default function Routines() {
         </div>
 
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-[#F8F9FA] border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_ROUTINE}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_STUDENT}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_DAYS}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_PERIOD}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_COACH}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_STATUS}</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">{ROUTINES_TEXTS.TABLE_ACTIONS}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {routines.map((routine) => (
-                <tr key={routine.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                        <Dumbbell className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{routine.name}</p>
-                        <p className="text-xs text-gray-500 whitespace-normal min-w-[200px] max-w-[280px] leading-tight mt-0.5">{routine.description}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <img src={routine.studentImg} alt={routine.student} className="w-8 h-8 rounded-full object-cover" />
-                      <span className="font-medium text-gray-900">{routine.student}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 font-medium text-[13px]">{routine.days} días</td>
-                  <td className="px-6 py-4 text-gray-600 text-xs whitespace-pre-wrap">{routine.period.replace(' - ', '\n- ')}</td>
-                  <td className="px-6 py-4 text-gray-600 text-[13px]">{routine.coach}</td>
-                  <td className="px-6 py-4">{getStatusBadge(routine.status)}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+          {loading ? (
+            <div className="flex items-center justify-center h-96">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : filteredRoutines.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+              <Dumbbell className="w-12 h-12 text-gray-300 mb-3" />
+              <p className="font-semibold text-sm">No se encontraron rutinas</p>
+              <p className="text-xs text-gray-400 mt-1">Intenta con otro término de búsqueda o crea una nueva rutina.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-[#F8F9FA] border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_ROUTINE}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_STUDENT}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_DAYS}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_PERIOD}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_COACH}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs">{ROUTINES_TEXTS.TABLE_STATUS}</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-xs text-center">{ROUTINES_TEXTS.TABLE_ACTIONS}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredRoutines.map((routine) => {
+                  const hasStudentObj = routine.student && typeof routine.student === 'object';
+                  const studentName = hasStudentObj 
+                    ? `${routine.student.firstName} ${routine.student.lastName}`
+                    : (routine.student || 'Sin asignar');
+                  const studentImg = hasStudentObj && routine.student.photo
+                    ? routine.student.photo
+                    : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop';
+
+                  const daysCount = Array.isArray(routine.days) ? routine.days.length : 0;
+
+                  const startStr = routine.startDate 
+                    ? new Date(routine.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : '';
+                  const endStr = routine.endDate 
+                    ? new Date(routine.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : 'Sin límite';
+                  const period = `${startStr} - ${endStr}`;
+
+                  return (
+                    <tr key={routine._id || routine.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <Dumbbell className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{routine.name}</p>
+                            <p className="text-xs text-gray-500 whitespace-normal min-w-[200px] max-w-[280px] leading-tight mt-0.5">{routine.description}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <img src={studentImg} alt={studentName} className="w-8 h-8 rounded-full object-cover" />
+                          <span className="font-medium text-gray-900">{studentName}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-medium text-[13px]">{daysCount} días</td>
+                      <td className="px-6 py-4 text-gray-600 text-xs whitespace-pre-wrap">{period.replace(' - ', '\n- ')}</td>
+                      <td className="px-6 py-4 text-gray-600 text-[13px]">{routine.createdBy || 'Marcos Ruiz'}</td>
+                      <td className="px-6 py-4">{getStatusBadge(routine.active)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <span>Mostrando 1 a 7 de 7 rutinas</span>
+          <span>{`Mostrando ${filteredRoutines.length > 0 ? (page - 1) * 10 + 1 : 0} a ${Math.min(page * 10, totalDocs)} de ${totalDocs} rutinas`}</span>
           <div className="flex items-center gap-1">
-            <button className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">&lt;</button>
-            <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg">1</button>
-            <button className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">&gt;</button>
+            <button 
+              disabled={page <= 1} 
+              onClick={() => setPage(page - 1)} 
+              className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              &lt;
+            </button>
+            <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-semibold">{page}</button>
+            <button 
+              disabled={page >= totalPages} 
+              onClick={() => setPage(page + 1)} 
+              className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              &gt;
+            </button>
           </div>
         </div>
       </div>
