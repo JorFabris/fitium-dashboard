@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Camera } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface CreateStudentSidebarProps {
   isOpen: boolean;
@@ -107,7 +107,7 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
           <div className="p-6 space-y-8 flex-1">
             {/* Foto de perfil */}
-            <section>
+            {/* <section>
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Foto de perfil</h3>
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors">
@@ -118,7 +118,7 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
                   <p className="text-xs text-gray-500 mt-1">JPG, PNG o WEBP<br />Máx. 2MB</p>
                 </div>
               </div>
-            </section>
+            </section> */}
 
             {/* Información personal */}
             <section>

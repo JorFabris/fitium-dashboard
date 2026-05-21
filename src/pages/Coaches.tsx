@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Search, Plus, Filter, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
+  Search, Plus, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { useCoaches } from '@/hooks/useCoaches';
 import { formatDate } from '@/utils/formatters';
@@ -24,6 +24,13 @@ const Coaches: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
   const [viewMode, setViewMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredCoaches = coaches.filter(c => {
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+    const email = (c.email || '').toLowerCase();
+    return fullName.includes(searchQuery.toLowerCase()) || email.includes(searchQuery.toLowerCase());
+  });
 
   const handleOpenCreate = () => {
     setSelectedCoach(null);
@@ -72,13 +79,15 @@ const Coaches: React.FC = () => {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={COACHES_TEXTS.SEARCH_COACH}
               className="w-full md:w-64 pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-            <Filter className="w-4 h-4" />
-            {COMMON_TEXTS.BUTTON_FILTERS}
+          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm shrink-0">
+            <Download className="w-4 h-4 text-gray-500 shrink-0" />
+            <span>Exportar</span>
           </button>
           <button onClick={handleOpenCreate} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm w-full sm:w-auto">
             <Plus className="w-4 h-4 shrink-0" />
@@ -89,22 +98,6 @@ const Coaches: React.FC = () => {
 
       {/* Table Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-
-        {/* Table Filters/Actions */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
-          <div className="relative w-full sm:w-96">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder={COMMON_TEXTS.SEARCH_PLACEHOLDER}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm w-full sm:w-auto justify-center">
-            <Download className="w-4 h-4" />
-            {COMMON_TEXTS.BUTTON_EXPORT}
-          </button>
-        </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
@@ -125,14 +118,14 @@ const Coaches: React.FC = () => {
                     <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : coaches.length === 0 ? (
+              ) : filteredCoaches.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="h-48 text-center text-gray-500">
                     {COACHES_TEXTS.TABLE_NO_COACHES}
                   </td>
                 </tr>
               ) : (
-                coaches.map((coach) => {
+                filteredCoaches.map((coach) => {
                   const creationDate = formatDate(coach.createdAt);
 
                   return (
@@ -181,7 +174,7 @@ const Coaches: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
           <p className="text-xs text-gray-500 font-medium">
-            {COMMON_TEXTS.PAGINATION_SHOWING} {coaches.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} coaches
+            {COMMON_TEXTS.PAGINATION_SHOWING} {filteredCoaches.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} coaches
           </p>
           <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
             <button

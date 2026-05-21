@@ -14,5 +14,11 @@ export const studentsService = {
   update: async (id: string, data: any) => {
     const response = await api.put(`/api/v1/students/update/${id}`, data);
     return response.data;
+  },
+  search: async (query: string) => {
+    const response = await api.get('/api/v1/students/search', {
+      params: { q: query }
+    });
+    return response.data;
   }
 };

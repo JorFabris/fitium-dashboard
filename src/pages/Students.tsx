@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Search, Plus, Bell,
-  Filter, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
+  Search, Plus, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { useStudents } from '../hooks/useStudents';
 import { formatDate, formatCurrency } from '@/utils/formatters';
@@ -25,6 +24,13 @@ const Students: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'view' | 'edit' | 'create'>('create');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredStudents = students.filter(s => {
+    const fullName = `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase();
+    const email = (s.email || '').toLowerCase();
+    return fullName.includes(searchQuery.toLowerCase()) || email.includes(searchQuery.toLowerCase());
+  });
 
   const handleOpenCreate = () => {
     setSelectedStudent(null);
@@ -97,15 +103,15 @@ const Students: React.FC = () => {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar estudiante..."
               className="w-full md:w-64 pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
             />
           </div>
-          <button className="relative p-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 shadow-sm shrink-0">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-blue-600 text-[10px] font-bold text-white flex items-center justify-center rounded-full border-2 border-white">
-              3
-            </span>
+          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm shrink-0">
+            <Download className="w-4 h-4 text-gray-500 shrink-0" />
+            <span>Exportar</span>
           </button>
           <button onClick={handleOpenCreate} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm w-full sm:w-auto">
             <Plus className="w-4 h-4 shrink-0" />
@@ -115,50 +121,6 @@ const Students: React.FC = () => {
       </div>
       {/* Table Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-
-        {/* Filters */}
-        <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder={STUDENTS_TEXTS.SEARCH_STUDENT_OR_EMAIL}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-semibold text-gray-500 uppercase ml-1 mb-1">Estado</span>
-                <select className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 relative min-w-[110px]" style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}>
-                  <option>Todos</option>
-                  <option>Activo</option>
-                  <option>Inactivo</option>
-                </select>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-semibold text-gray-500 uppercase ml-1 mb-1">Plan</span>
-                <select className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 relative min-w-[110px]" style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}>
-                  <option>Todos</option>
-                  <option>Premium</option>
-                  <option>Básico</option>
-                </select>
-              </div>
-
-            </div>
-
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 mt-5">
-              <Filter className="w-4 h-4 text-gray-500" />
-              {COMMON_TEXTS.BUTTON_FILTERS}
-            </button>
-          </div>
-
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 w-full xl:w-auto">
-            <Download className="w-4 h-4 text-gray-500" />
-            {COMMON_TEXTS.BUTTON_EXPORT}
-          </button>
-        </div>
 
         {/* Table Data */}
         <div className="overflow-x-auto min-h-[300px]">
@@ -179,14 +141,14 @@ const Students: React.FC = () => {
                     <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : students.length === 0 ? (
+              ) : filteredStudents.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="h-48 text-center text-gray-500">
                     {STUDENTS_TEXTS.TABLE_NO_STUDENTS}
                   </td>
                 </tr>
               ) : (
-                students.map((student) => {
+                filteredStudents.map((student) => {
                   const enrollDate = formatDate(student.enrollmentDate);
 
 
@@ -250,7 +212,7 @@ const Students: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
           <p className="text-xs text-gray-500 font-medium">
-            {COMMON_TEXTS.PAGINATION_SHOWING} {students.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} estudiantes
+            {COMMON_TEXTS.PAGINATION_SHOWING} {filteredStudents.length > 0 ? (page - 1) * limit + 1 : 0} {COMMON_TEXTS.PAGINATION_TO} {Math.min(page * limit, totalDocs)} {COMMON_TEXTS.PAGINATION_OF} {totalDocs} estudiantes
           </p>
           <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
             <button

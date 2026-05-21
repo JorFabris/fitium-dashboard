@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
 import { CreateClassSidebar } from '@/components/CreateClassSidebar';
 import { useClasses } from '@/hooks/useClasses';
-import { coachesService } from '@/services/coaches.service';
 
 const reverseDayMapping: Record<string, string> = {
   'Monday': 'Lun',
@@ -29,25 +28,9 @@ export default function Classes() {
   } = useClasses();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCoachFilter, setSelectedCoachFilter] = useState('');
-  const [selectedDayFilter, setSelectedDayFilter] = useState('');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
-  const [coaches, setCoaches] = useState<any[]>([]);
-
-  // Load coaches for filter list
-  useEffect(() => {
-    coachesService.getPaginated(1, 100).then((res) => {
-      if (res && res.data && res.data.data) {
-        setCoaches(res.data.data.map((c: any) => ({
-          id: c._id,
-          name: `${c.firstName} ${c.lastName}`
-        })));
-      }
-    }).catch(err => console.error(err));
-  }, []);
 
   const handleOpenCreate = () => {
     setSelectedClass(null);
@@ -120,20 +103,7 @@ export default function Classes() {
 
   // Filter local classes
   const filteredClasses = classes.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const coachId = typeof c.coach === 'object' ? c.coach?._id : c.coach;
-    const matchesCoach = selectedCoachFilter ? coachId === selectedCoachFilter : true;
-    
-    const matchesDay = selectedDayFilter ? c.weekDays?.includes(selectedDayFilter) : true;
-    
-    const matchesStatus = selectedStatusFilter === 'active'
-      ? c.active === true
-      : selectedStatusFilter === 'inactive'
-      ? c.active === false
-      : true;
-
-    return matchesSearch && matchesCoach && matchesDay && matchesStatus;
+    return c.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -156,9 +126,9 @@ export default function Classes() {
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors bg-white">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span>Filtros</span>
+            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors bg-white shadow-sm shrink-0">
+              <Download className="w-4 h-4 text-gray-500 shrink-0" />
+              <span>Exportar</span>
             </button>
             <button 
               onClick={handleOpenCreate} 
@@ -173,66 +143,6 @@ export default function Classes() {
 
       {/* Main List Box */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Filter bar */}
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
-            {/* Search Input */}
-            <div className="relative w-full sm:w-52">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar por nombre..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 w-full bg-white"
-              />
-            </div>
-
-            {/* Coach Filter */}
-            <select
-              value={selectedCoachFilter}
-              onChange={(e) => setSelectedCoachFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white outline-none focus:border-blue-600 font-medium text-gray-700 w-full sm:w-auto"
-            >
-              <option value="">Todos los coaches</option>
-              {coaches.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-
-            {/* Day Filter */}
-            <select
-              value={selectedDayFilter}
-              onChange={(e) => setSelectedDayFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white outline-none focus:border-blue-600 font-medium text-gray-700 w-full sm:w-auto"
-            >
-              <option value="">Todos los días</option>
-              <option value="Monday">Lunes</option>
-              <option value="Tuesday">Martes</option>
-              <option value="Wednesday">Miércoles</option>
-              <option value="Thursday">Jueves</option>
-              <option value="Friday">Viernes</option>
-              <option value="Saturday">Sábado</option>
-              <option value="Sunday">Domingo</option>
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatusFilter}
-              onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white outline-none focus:border-blue-600 font-medium text-gray-700 w-full sm:w-auto"
-            >
-              <option value="">Estado: Todos</option>
-              <option value="active">Activa</option>
-              <option value="inactive">Inactiva</option>
-            </select>
-          </div>
-
-          <button className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-xs font-semibold text-gray-700 bg-white w-full lg:w-auto">
-            <Download className="w-3.5 h-3.5" />
-            <span>Exportar</span>
-          </button>
-        </div>
 
         {/* Table / Mobile list */}
         <div className="overflow-x-auto">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Search, Filter, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
-import { ROUTINES_TEXTS, COMMON_TEXTS } from '@/constants/texts';
+import { Search, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
+import { ROUTINES_TEXTS } from '@/constants/texts';
 import { CreateRoutineSidebar } from '@/components/CreateRoutineSidebar';
 import { useRoutines } from '@/hooks/useRoutines';
 
@@ -94,8 +94,8 @@ export default function Routines() {
             />
           </div>
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shrink-0">
-            <Filter className="w-4 h-4 text-gray-500" />
-            {COMMON_TEXTS.BUTTON_FILTERS}
+            <Download className="w-4 h-4 text-gray-500" />
+            <span>Exportar</span>
           </button>
           <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm shrink-0">
             <Plus className="w-4 h-4" />
@@ -105,29 +105,6 @@ export default function Routines() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 w-full xl:w-auto">
-            <select className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-auto">
-              <option>Todos los estudiantes</option>
-            </select>
-            <div className="flex flex-col w-full sm:w-auto">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase ml-1 mb-1">Estado</span>
-              <select className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px] w-full sm:w-auto">
-                <option>Todos</option>
-              </select>
-            </div>
-            <div className="flex flex-col w-full sm:w-auto">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase ml-1 mb-1">Entrenador</span>
-              <select className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px] w-full sm:w-auto">
-                <option>Todos</option>
-              </select>
-            </div>
-          </div>
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shrink-0 w-full xl:w-auto">
-            <Download className="w-4 h-4 text-gray-500" />
-            {COMMON_TEXTS.BUTTON_EXPORT}
-          </button>
-        </div>
 
         <div className="overflow-x-auto min-h-[400px]">
           {loading ? (

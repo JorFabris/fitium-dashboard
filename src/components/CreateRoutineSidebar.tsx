@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Check, Plus } from 'lucide-react';
 import { studentsService } from '@/services/students.service';
+import { coachesService } from '@/services/coaches.service';
 
 interface CreateRoutineSidebarProps {
   isOpen: boolean;
@@ -41,6 +42,24 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
+  const [coaches, setCoaches] = useState<any[]>([]);
+
+  // Fetch real coaches when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      coachesService.getPaginated(1, 100).then((res) => {
+        if (res && res.data && res.data.data) {
+          const mapped = res.data.data.map((c: any) => ({
+            id: c._id,
+            name: `${c.firstName} ${c.lastName}`
+          }));
+          setCoaches(mapped);
+        }
+      }).catch((err) => {
+        console.error('Error fetching coaches:', err);
+      });
+    }
+  }, [isOpen]);
 
   // Fetch real students when modal is open
   useEffect(() => {
@@ -70,9 +89,39 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     }
   }, [isOpen, routineData]);
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(studentSearch.toLowerCase())
-  );
+  // Search students from backend when typing in autocomplete
+  useEffect(() => {
+    if (!isOpen || selectedStudent) return;
+
+    if (!studentSearch.trim()) {
+      studentsService.getPaginated(1, 100).then((res) => {
+        if (res && res.data) {
+          setStudents(res.data.map((s: any) => ({
+            id: s._id,
+            name: `${s.firstName} ${s.lastName}`,
+            img: s.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop'
+          })));
+        }
+      });
+      return;
+    }
+
+    const delayDebounce = setTimeout(() => {
+      studentsService.search(studentSearch).then((res) => {
+        if (res && res.data) {
+          setStudents(res.data.map((s: any) => ({
+            id: s._id,
+            name: `${s.firstName} ${s.lastName}`,
+            img: s.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop'
+          })));
+        }
+      }).catch(err => console.error(err));
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [studentSearch, isOpen, selectedStudent]);
+
+  const filteredStudents = students;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -175,7 +224,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       setStudentSearch('');
       setSelectedDays([]);
     }
-  }, [routineData, isOpen, students.length]);
+  }, [routineData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -443,9 +492,9 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                   className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium text-gray-700 bg-white ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 >
                   <option value="">Seleccionar entrenador</option>
-                  <option value="Marcos Ruiz">Marcos Ruiz</option>
-                  <option value="Sofía Gómez">Sofía Gómez</option>
-                  <option value="Juan Pérez">Juan Pérez</option>
+                  {coaches.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
               </div>
               <p className="text-[11px] text-gray-500">Entrenador que crea y asigna esta rutina.</p>
