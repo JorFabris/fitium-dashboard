@@ -28,6 +28,20 @@ const monthsList = [
 const currentYear = new Date().getFullYear();
 const yearsList = [currentYear - 1, currentYear, currentYear + 1];
 
+const getDefaultMonthAndYear = () => {
+  const today = new Date();
+  let month = today.getMonth() + 1;
+  let year = today.getFullYear();
+  if (today.getDate() > 23) {
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return { month, year };
+};
+
 export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
   isOpen,
   onClose,
@@ -43,16 +57,19 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
 
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  const [formData, setFormData] = useState({
-    month: new Date().getMonth() + 1,
-    year: currentYear,
-    amount: 0,
-    status: 'pending' as 'pending' | 'paid' | 'overdue',
-    dueDate: '',
-    paidAt: '',
-    paymentMethod: 'cash' as 'cash' | 'transfer' | 'card' | 'other',
-    discount: 0,
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    const { month, year } = getDefaultMonthAndYear();
+    return {
+      month,
+      year,
+      amount: '',
+      status: 'paid' as 'pending' | 'paid' | 'overdue',
+      dueDate: '',
+      paidAt: '',
+      paymentMethod: 'cash' as 'cash' | 'transfer' | 'card' | 'other',
+      discount: '',
+      notes: ''
+    };
   });
 
   // Fetch students for search suggestions
@@ -70,11 +87,12 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
 
           // Populate edit/view data if exists
           if (paymentData) {
+            const defaultDate = getDefaultMonthAndYear();
             setFormData({
-              month: paymentData.month || new Date().getMonth() + 1,
-              year: paymentData.year || currentYear,
+              month: paymentData.month || defaultDate.month,
+              year: paymentData.year || defaultDate.year,
               amount: paymentData.amount || 0,
-              status: paymentData.status || 'pending',
+              status: paymentData.status || 'paid',
               dueDate: paymentData.dueDate ? new Date(paymentData.dueDate).toISOString().split('T')[0] : '',
               paidAt: paymentData.paidAt ? new Date(paymentData.paidAt).toISOString().split('T')[0] : '',
               paymentMethod: paymentData.paymentMethod || 'cash',
@@ -99,15 +117,16 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
       }).catch(err => console.error(err));
     } else {
       // Reset form
+      const { month, year } = getDefaultMonthAndYear();
       setFormData({
-        month: new Date().getMonth() + 1,
-        year: currentYear,
-        amount: 0,
-        status: 'pending',
+        month,
+        year,
+        amount: '',
+        status: 'paid',
         dueDate: '',
         paidAt: '',
         paymentMethod: 'cash',
-        discount: 0,
+        discount: '',
         notes: ''
       });
       setSelectedStudent(null);
@@ -220,10 +239,10 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
     <>
       {/* Background Overlay */}
       <div className="fixed inset-0 bg-black/30 z-40 transition-opacity" onClick={onClose} />
-      
+
       {/* Sidebar Container */}
       <div className="fixed inset-y-0 right-0 w-full max-w-[480px] bg-white shadow-xl z-50 overflow-y-auto flex flex-col transition-transform transform translate-x-0">
-        
+
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
@@ -242,7 +261,7 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between">
           <div className="p-6 space-y-6 flex-1">
-            
+
             {/* Student Autocomplete Search */}
             <div className="relative" ref={autocompleteRef}>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -256,7 +275,7 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
                 ) : (
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
                 )}
-                
+
                 <input
                   required
                   type="text"
@@ -268,9 +287,8 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
                     setShowStudentSuggestions(true);
                   }}
                   onFocus={() => !selectedStudent && setShowStudentSuggestions(true)}
-                  className={`w-full pl-10 pr-10 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${
-                    selectedStudent ? 'bg-blue-50/30 text-blue-900 border-blue-200 font-semibold' : ''
-                  } ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
+                  className={`w-full pl-10 pr-10 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${selectedStudent ? 'bg-blue-50/30 text-blue-900 border-blue-200 font-semibold' : ''
+                    } ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 />
 
                 {selectedStudent && !isViewOnly && (
@@ -415,10 +433,9 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
                   disabled={isViewOnly}
                   value={formData.status}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium text-gray-700 bg-white ${
-                    formData.status === 'paid' ? 'text-green-600 font-semibold' :
+                  className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium text-gray-700 bg-white ${formData.status === 'paid' ? 'text-green-600 font-semibold' :
                     formData.status === 'pending' ? 'text-amber-600 font-semibold' : 'text-red-600 font-semibold'
-                  } ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
+                    } ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
                 >
                   <option value="pending">Pendiente</option>
                   <option value="paid">Pagado</option>

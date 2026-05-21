@@ -4,7 +4,8 @@ export const formatDate = (date: string | Date | undefined | null): string => {
   return new Intl.DateTimeFormat('es-AR', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
+    timeZone: 'UTC'
   }).format(d);
 };
 

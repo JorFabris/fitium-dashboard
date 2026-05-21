@@ -54,6 +54,20 @@ export const usePayments = () => {
     }
   };
 
+  const deletePayment = async (id: string) => {
+    try {
+      setLoading(true);
+      await paymentsService.delete(id);
+      await fetchPayments(page);
+      return true;
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPayments(page);
   }, [page]);
@@ -68,6 +82,7 @@ export const usePayments = () => {
     limit,
     fetchPayments,
     createPayment,
-    updatePayment
+    updatePayment,
+    deletePayment
   };
 };

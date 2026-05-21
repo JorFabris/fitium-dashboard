@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Eye, Edit2, MoreVertical, AlertCircle } from 'lucide-react';
+import { Search, Plus, Download, Eye, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { CreatePaymentSidebar } from '@/components/CreatePaymentSidebar';
 import { usePayments } from '@/hooks/usePayments';
+import { toast } from 'react-toastify';
 
 const monthNames = [
   '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -24,7 +25,8 @@ export default function Payments() {
     totalPages,
     totalDocs,
     createPayment,
-    updatePayment
+    updatePayment,
+    deletePayment
   } = usePayments();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +50,17 @@ export default function Payments() {
     setSelectedPayment(paymentObj);
     setIsViewOnly(true);
     setIsSidebarOpen(true);
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.')) {
+      const success = await deletePayment(id);
+      if (success) {
+        toast.success('Pago eliminado correctamente');
+      } else {
+        toast.error('Hubo un error al eliminar el pago');
+      }
+    }
   };
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
@@ -83,7 +96,7 @@ export default function Payments() {
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
   };
 
   // Filter payments locally
@@ -211,6 +224,10 @@ export default function Payments() {
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>Editar</span>
                         </button>
+                        <button onClick={() => handleDeleteClick(p._id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors bg-white">
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Eliminar</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -305,8 +322,8 @@ export default function Payments() {
                             <button onClick={() => handleOpenEdit(p)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 bg-white">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white">
-                              <MoreVertical className="w-3.5 h-3.5" />
+                            <button onClick={() => handleDeleteClick(p._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 bg-white">
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

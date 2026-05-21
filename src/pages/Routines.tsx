@@ -143,10 +143,10 @@ export default function Routines() {
                   const daysCount = Array.isArray(routine.days) ? routine.days.length : 0;
 
                   const startStr = routine.startDate 
-                    ? new Date(routine.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    ? new Date(routine.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : '';
                   const endStr = routine.endDate 
-                    ? new Date(routine.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    ? new Date(routine.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : 'Sin límite';
                   const period = `${startStr} - ${endStr}`;
 
