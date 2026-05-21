@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
+import { Search, Plus, Download, Eye, Edit2, Trash2, Dumbbell } from 'lucide-react';
 import { CreateClassSidebar } from '@/components/CreateClassSidebar';
 import { useClasses } from '@/hooks/useClasses';
+import { toast } from 'react-toastify';
 
 const reverseDayMapping: Record<string, string> = {
   'Monday': 'Lun',
@@ -24,7 +25,8 @@ export default function Classes() {
     totalPages,
     totalDocs,
     createClass,
-    updateClass
+    updateClass,
+    deleteClass
   } = useClasses();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +50,17 @@ export default function Classes() {
     setSelectedClass(classObj);
     setIsViewOnly(true);
     setIsSidebarOpen(true);
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta clase? Esta acción no se puede deshacer.')) {
+      const success = await deleteClass(id);
+      if (success) {
+        toast.success('Clase eliminada correctamente');
+      } else {
+        toast.error('Hubo un error al eliminar la clase');
+      }
+    }
   };
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
@@ -248,6 +261,10 @@ export default function Classes() {
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>Editar</span>
                         </button>
+                        <button onClick={() => handleDeleteClick(classObj._id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-colors bg-white">
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Eliminar</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -373,8 +390,8 @@ export default function Classes() {
                             <button onClick={() => handleOpenEdit(classObj)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 bg-white">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white">
-                              <MoreVertical className="w-3.5 h-3.5" />
+                            <button onClick={() => handleDeleteClick(classObj._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 bg-white">
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

@@ -59,6 +59,20 @@ export const useCoaches = () => {
     }
   };
 
+  const deleteCoach = async (id: string) => {
+    try {
+      setLoading(true);
+      await coachesService.delete(id);
+      await fetchCoaches(page);
+      return true;
+    } catch (error) {
+      console.error('Error deleting coach:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCoaches(page);
   }, [page]);
@@ -73,6 +87,7 @@ export const useCoaches = () => {
     limit,
     fetchCoaches,
     createCoach,
-    updateCoach
+    updateCoach,
+    deleteCoach
   };
 };

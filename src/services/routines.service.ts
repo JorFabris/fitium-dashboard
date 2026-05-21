@@ -14,5 +14,9 @@ export const routinesService = {
   update: async (id: string, data: any) => {
     const response = await api.put(`/api/v1/routines/update/${id}`, data);
     return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await api.delete(`/api/v1/routines/delete/${id}`);
+    return response.data;
   }
 };

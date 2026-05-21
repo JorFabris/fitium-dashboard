@@ -20,5 +20,9 @@ export const studentsService = {
       params: { q: query }
     });
     return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await api.delete(`/api/v1/students/delete/${id}`);
+    return response.data;
   }
 };

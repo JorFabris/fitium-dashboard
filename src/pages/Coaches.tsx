@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Search, Plus, Download, Eye, Edit2, MoreVertical, ChevronLeft, ChevronRight, Loader2
+  Search, Plus, Download, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { useCoaches } from '@/hooks/useCoaches';
 import { formatDate } from '@/utils/formatters';
 import { CreateCoachSidebar } from '@/components/CreateCoachSidebar';
@@ -18,7 +19,8 @@ const Coaches: React.FC = () => {
     totalDocs,
     limit,
     createCoach,
-    updateCoach
+    updateCoach,
+    deleteCoach
   } = useCoaches();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -48,6 +50,17 @@ const Coaches: React.FC = () => {
     setSelectedCoach(coach);
     setViewMode('view');
     setIsSidebarOpen(true);
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este coach? Esta acción no se puede deshacer.')) {
+      const success = await deleteCoach(id);
+      if (success) {
+        toast.success('Coach eliminado correctamente');
+      } else {
+        toast.error('Hubo un error al eliminar al coach');
+      }
+    }
   };
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
@@ -158,8 +171,8 @@ const Coaches: React.FC = () => {
                           <button onClick={() => handleOpenEdit(coach)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200">
-                            <MoreVertical className="w-4 h-4" />
+                          <button onClick={() => handleDeleteClick(coach._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100">
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

@@ -58,6 +58,20 @@ export const useStudents = () => {
     }
   };
 
+  const deleteStudent = async (id: string) => {
+    try {
+      setLoading(true);
+      await studentsService.delete(id);
+      await fetchStudents(page);
+      return true;
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchStudents(page);
   }, [page]);
@@ -72,6 +86,7 @@ export const useStudents = () => {
     limit,
     fetchStudents,
     createStudent,
-    updateStudent
+    updateStudent,
+    deleteStudent
   };
 };

@@ -54,6 +54,20 @@ export const useClasses = () => {
     }
   };
 
+  const deleteClass = async (id: string) => {
+    try {
+      setLoading(true);
+      await classesService.delete(id);
+      await fetchClasses(page);
+      return true;
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchClasses(page);
   }, [page]);
@@ -68,6 +82,7 @@ export const useClasses = () => {
     limit,
     fetchClasses,
     createClass,
-    updateClass
+    updateClass,
+    deleteClass
   };
 };

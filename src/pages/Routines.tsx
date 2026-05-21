@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Eye, Edit2, MoreVertical, Dumbbell } from 'lucide-react';
+import { Search, Plus, Download, Eye, Edit2, Trash2, Dumbbell } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { ROUTINES_TEXTS } from '@/constants/texts';
 import { CreateRoutineSidebar } from '@/components/CreateRoutineSidebar';
 import { useRoutines } from '@/hooks/useRoutines';
@@ -13,7 +14,8 @@ export default function Routines() {
     totalPages,
     totalDocs,
     createRoutine,
-    updateRoutine
+    updateRoutine,
+    deleteRoutine
   } = useRoutines();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,6 +39,17 @@ export default function Routines() {
     setSelectedRoutine(routine);
     setIsViewOnly(true);
     setIsSidebarOpen(true);
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta rutina? Esta acción no se puede deshacer.')) {
+      const success = await deleteRoutine(id);
+      if (success) {
+        toast.success('Rutina eliminada correctamente');
+      } else {
+        toast.error('Hubo un error al eliminar la rutina');
+      }
+    }
   };
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
@@ -181,8 +194,8 @@ export default function Routines() {
                           <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
-                            <MoreVertical className="w-4 h-4" />
+                          <button onClick={() => handleDeleteClick(routine._id || routine.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200">
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

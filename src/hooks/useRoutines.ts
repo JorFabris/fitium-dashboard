@@ -55,6 +55,20 @@ export const useRoutines = () => {
     }
   };
 
+  const deleteRoutine = async (id: string) => {
+    try {
+      setLoading(true);
+      await routinesService.delete(id);
+      await fetchRoutines(page);
+      return true;
+    } catch (error) {
+      console.error('Error deleting routine:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRoutines(page);
   }, [page]);
@@ -69,6 +83,7 @@ export const useRoutines = () => {
     limit,
     fetchRoutines,
     createRoutine,
-    updateRoutine
+    updateRoutine,
+    deleteRoutine
   };
 };
