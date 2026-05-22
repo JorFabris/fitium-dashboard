@@ -7,6 +7,7 @@ import Coaches from './pages/Coaches';
 import Routines from './pages/Routines';
 import Classes from './pages/Classes';
 import Payments from './pages/Payments';
+import Expenses from './pages/Expenses';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
@@ -41,6 +42,7 @@ function App() {
           <Route path={ROUTES.routines} element={<Routines />} />
           <Route path={ROUTES.classes} element={<Classes />} />
           <Route path={ROUTES.payments} element={<Payments />} />
+          <Route path={ROUTES.expenses} element={<Expenses />} />
           <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />
         </Route>
 

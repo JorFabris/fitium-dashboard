@@ -6,5 +6,6 @@ export const ROUTES = {
   classes: '/classes',
   routines: '/routines',
   payments: '/payments',
+  expenses: '/expenses',
   settings: '/settings',
 };
