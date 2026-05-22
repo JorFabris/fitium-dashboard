@@ -8,6 +8,7 @@ import { formatDate, formatCurrency } from '@/utils/formatters';
 import { STUDENTS_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 import { CreateStudentSidebar } from '@/components/CreateStudentSidebar';
 import type { Student } from '@/types/student';
+import { classesService } from '@/services/classes.service';
 
 const Students: React.FC = () => {
   const {
@@ -64,10 +65,58 @@ const Students: React.FC = () => {
   };
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
+    const { selectedClasses, ...studentPayload } = data;
+    
+    let targetStudentId = id;
+    
     if (id) {
-      await updateStudent(id, data);
+      const success = await updateStudent(id, studentPayload);
+      if (!success) {
+        toast.error('Error al actualizar el estudiante');
+        return;
+      }
+      toast.success('Estudiante actualizado correctamente');
     } else {
-      await createStudent(data);
+      const createdStudent = await createStudent(studentPayload);
+      if (!createdStudent) {
+        toast.error('Error al crear el estudiante');
+        return;
+      }
+      targetStudentId = createdStudent._id;
+      toast.success('Estudiante creado correctamente');
+    }
+
+    if (targetStudentId && selectedClasses) {
+      try {
+        // Sync class enrollments
+        const response = await classesService.getPaginated(1, 100);
+        const allClasses = response.data || [];
+        
+        for (const classObj of allClasses) {
+          const currentBookings = classObj.bookings || [];
+          const isCurrentlyEnrolled = currentBookings.some((b: any) => 
+            typeof b === 'object' ? b._id === targetStudentId : b === targetStudentId
+          );
+          const shouldBeEnrolled = selectedClasses.includes(classObj._id);
+          
+          const bookingIds = currentBookings.map((b: any) => typeof b === 'object' ? b._id : b);
+
+          if (shouldBeEnrolled && !isCurrentlyEnrolled) {
+            // Enroll: Add student ID to bookings
+            await classesService.update(classObj._id, {
+              bookings: [...bookingIds, targetStudentId]
+            });
+          } else if (!shouldBeEnrolled && isCurrentlyEnrolled) {
+            // Unenroll: Remove student ID from bookings
+            await classesService.update(classObj._id, {
+              bookings: bookingIds.filter((bid: string) => bid !== targetStudentId)
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error synchronizing class bookings:', err);
+        toast.error('Error al actualizar las inscripciones de clases');
+      }
     }
   };
 

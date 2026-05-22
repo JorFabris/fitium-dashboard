@@ -32,13 +32,13 @@ export const useStudents = () => {
   const createStudent = async (data: any) => {
     try {
       setLoading(true);
-      await studentsService.create(data);
+      const res = await studentsService.create(data);
       await fetchStudents(1);
       setPage(1);
-      return true;
+      return res.data;
     } catch (error) {
       console.error('Error creating student:', error);
-      return false;
+      return null;
     } finally {
       setLoading(false);
     }

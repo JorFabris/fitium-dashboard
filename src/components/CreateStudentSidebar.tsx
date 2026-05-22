@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Dumbbell } from 'lucide-react';
+import { classesService } from '@/services/classes.service';
 
 interface CreateStudentSidebarProps {
   isOpen: boolean;
@@ -32,6 +33,39 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
   });
 
   const [loading, setLoading] = useState(false);
+  const [classesList, setClassesList] = useState<any[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      classesService.getPaginated(1, 100).then((res) => {
+        if (res && res.data) {
+          setClassesList(res.data);
+          if (studentData) {
+            const enrolled = res.data
+              .filter((c: any) =>
+                c.bookings?.some((b: any) => (typeof b === 'object' ? b._id === studentData._id : b === studentData._id))
+              )
+              .map((c: any) => c._id);
+            setSelectedClasses(enrolled);
+          } else {
+            setSelectedClasses([]);
+          }
+        }
+      }).catch(err => {
+        console.error('Error fetching classes for student sidebar:', err);
+      });
+    }
+  }, [isOpen, studentData]);
+
+  const handleToggleClass = (classId: string) => {
+    if (onlyView) return;
+    setSelectedClasses(prev =>
+      prev.includes(classId)
+        ? prev.filter(id => id !== classId)
+        : [...prev, classId]
+    );
+  };
 
   useEffect(() => {
     if (studentData && isOpen) {
@@ -83,6 +117,7 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
       ...formData,
       birthDate: formData.birthDate ? new Date(formData.birthDate).toISOString() : undefined,
       enrollmentDate: formData.enrollmentDate ? new Date(formData.enrollmentDate).toISOString() : undefined,
+      selectedClasses: selectedClasses
     };
 
     await onSubmit(payload, studentData?._id);
@@ -189,6 +224,61 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
                   <div className="text-right text-xs text-gray-400 mt-1">{formData.notes.length}/500</div>
                 </div>
               </div>
+            </section>
+
+            {/* Clases inscritas */}
+            <section className="border-t border-gray-100 pt-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Dumbbell className="w-4 h-4 text-blue-600" />
+                <span>Clases inscritas</span>
+              </h3>
+              {classesList.length === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                  No hay clases disponibles en este box.
+                </p>
+              ) : (
+                <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                  {classesList.map((classObj) => {
+                    const isSelected = selectedClasses.includes(classObj._id);
+                    const schedule = `${classObj.startTime} - ${classObj.endTime}`;
+                    const days = Array.isArray(classObj.weekDays)
+                      ? classObj.weekDays.map((d: string) => {
+                          const mapping: Record<string, string> = {
+                            'Monday': 'Lun', 'Tuesday': 'Mar', 'Wednesday': 'Mié',
+                            'Thursday': 'Jue', 'Friday': 'Vie', 'Saturday': 'Sáb', 'Sunday': 'Dom'
+                          };
+                          return mapping[d] || d;
+                        }).join(', ')
+                      : '';
+
+                    return (
+                      <div
+                        key={classObj._id}
+                        onClick={() => handleToggleClass(classObj._id)}
+                        className={`p-3 border rounded-xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-blue-200 bg-blue-50/40 text-blue-900 shadow-sm'
+                            : 'border-gray-200 hover:bg-gray-50 bg-white'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-bold block truncate">{classObj.name}</span>
+                          <span className="text-[10px] text-gray-500 block mt-0.5 font-medium">
+                            {schedule} • {days}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          disabled={onlyView}
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0 pointer-events-none"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           </div>
 
