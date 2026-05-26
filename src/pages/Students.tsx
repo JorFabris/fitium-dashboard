@@ -64,7 +64,7 @@ const Students: React.FC = () => {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<Student> & { selectedClasses?: string[] }, id?: string) => {
     const { selectedClasses, ...studentPayload } = data;
     
     let targetStudentId = id;
@@ -94,12 +94,12 @@ const Students: React.FC = () => {
         
         for (const classObj of allClasses) {
           const currentBookings = classObj.bookings || [];
-          const isCurrentlyEnrolled = currentBookings.some((b: any) => 
+          const isCurrentlyEnrolled = currentBookings.some((b: string | { _id: string }) => 
             typeof b === 'object' ? b._id === targetStudentId : b === targetStudentId
           );
           const shouldBeEnrolled = selectedClasses.includes(classObj._id);
           
-          const bookingIds = currentBookings.map((b: any) => typeof b === 'object' ? b._id : b);
+          const bookingIds = currentBookings.map((b: string | { _id: string }) => typeof b === 'object' ? b._id : b);
 
           if (shouldBeEnrolled && !isCurrentlyEnrolled) {
             // Enroll: Add student ID to bookings

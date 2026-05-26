@@ -63,7 +63,7 @@ const Coaches: React.FC = () => {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<Coach>, id?: string) => {
     if (id) {
       const success = await updateCoach(id, data);
       if (success) {

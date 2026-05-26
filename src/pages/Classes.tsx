@@ -3,6 +3,7 @@ import { Search, Plus, Download, Eye, Edit2, Trash2, Dumbbell } from 'lucide-rea
 import { CreateClassSidebar } from '@/components/CreateClassSidebar';
 import { useClasses } from '@/hooks/useClasses';
 import { toast } from 'react-toastify';
+import type { Class } from '@/types';
 
 const reverseDayMapping: Record<string, string> = {
   'Monday': 'Lun',
@@ -31,7 +32,7 @@ export default function Classes() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<any | null>(null);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
 
   const handleOpenCreate = () => {
@@ -40,13 +41,13 @@ export default function Classes() {
     setIsSidebarOpen(true);
   };
 
-  const handleOpenEdit = (classObj: any) => {
+  const handleOpenEdit = (classObj: Class) => {
     setSelectedClass(classObj);
     setIsViewOnly(false);
     setIsSidebarOpen(true);
   };
 
-  const handleOpenView = (classObj: any) => {
+  const handleOpenView = (classObj: Class) => {
     setSelectedClass(classObj);
     setIsViewOnly(true);
     setIsSidebarOpen(true);
@@ -63,7 +64,7 @@ export default function Classes() {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<Class>, id?: string) => {
     if (id) {
       const success = await updateClass(id, data);
       if (success) {

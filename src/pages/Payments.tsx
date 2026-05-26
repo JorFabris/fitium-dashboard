@@ -3,6 +3,7 @@ import { Search, Plus, Download, Eye, Edit2, Trash2, AlertCircle } from 'lucide-
 import { CreatePaymentSidebar } from '@/components/CreatePaymentSidebar';
 import { usePayments } from '@/hooks/usePayments';
 import { toast } from 'react-toastify';
+import type { MonthlyFee } from '@/types';
 
 const monthNames = [
   '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -31,7 +32,7 @@ export default function Payments() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<MonthlyFee | null>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
 
   const handleOpenCreate = () => {
@@ -40,13 +41,13 @@ export default function Payments() {
     setIsSidebarOpen(true);
   };
 
-  const handleOpenEdit = (paymentObj: any) => {
+  const handleOpenEdit = (paymentObj: MonthlyFee) => {
     setSelectedPayment(paymentObj);
     setIsViewOnly(false);
     setIsSidebarOpen(true);
   };
 
-  const handleOpenView = (paymentObj: any) => {
+  const handleOpenView = (paymentObj: MonthlyFee) => {
     setSelectedPayment(paymentObj);
     setIsViewOnly(true);
     setIsSidebarOpen(true);
@@ -63,7 +64,7 @@ export default function Payments() {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<MonthlyFee>, id?: string) => {
     if (id) {
       const success = await updatePayment(id, data);
       if (success) {

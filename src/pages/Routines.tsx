@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Eye, Edit2, Trash2, Dumbbell } from 'lucide-react';
+import { Search, Plus, Download, Eye, Edit2, Trash2, Dumbbell, Copy } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { ROUTINES_TEXTS } from '@/constants/texts';
 import { CreateRoutineSidebar } from '@/components/CreateRoutineSidebar';
 import { useRoutines } from '@/hooks/useRoutines';
+import type { Routine } from '@/types';
 
 export default function Routines() {
   const {
@@ -20,7 +21,7 @@ export default function Routines() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedRoutine, setSelectedRoutine] = useState<any | null>(null);
+  const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
 
   const handleOpenCreate = () => {
@@ -29,15 +30,28 @@ export default function Routines() {
     setIsSidebarOpen(true);
   };
 
-  const handleOpenEdit = (routine: any) => {
+  const handleOpenEdit = (routine: Routine) => {
     setSelectedRoutine(routine);
     setIsViewOnly(false);
     setIsSidebarOpen(true);
   };
 
-  const handleOpenView = (routine: any) => {
+  const handleOpenView = (routine: Routine) => {
     setSelectedRoutine(routine);
     setIsViewOnly(true);
+    setIsSidebarOpen(true);
+  };
+
+  const handleDuplicateClick = (routine: Routine) => {
+    const duplicated = {
+      ...routine,
+      _id: undefined,
+      id: undefined,
+      student: undefined,
+      name: `${routine.name}`
+    } as unknown as Routine;
+    setSelectedRoutine(duplicated);
+    setIsViewOnly(false);
     setIsSidebarOpen(true);
   };
 
@@ -52,7 +66,7 @@ export default function Routines() {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<Routine>, id?: string) => {
     if (id) {
       const success = await updateRoutine(id, data);
       if (success) {
@@ -84,7 +98,7 @@ export default function Routines() {
   const filteredRoutines = routines.filter((routine) => {
     const nameMatch = routine.name.toLowerCase().includes(searchQuery.toLowerCase());
     const descriptionMatch = (routine.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     let studentMatch = false;
     if (routine.student) {
       if (typeof routine.student === 'object') {
@@ -157,7 +171,7 @@ export default function Routines() {
               <tbody className="divide-y divide-gray-50">
                 {filteredRoutines.map((routine) => {
                   const hasStudentObj = routine.student && typeof routine.student === 'object';
-                  const studentName = hasStudentObj 
+                  const studentName = hasStudentObj
                     ? `${routine.student.firstName} ${routine.student.lastName}`
                     : (routine.student || 'Sin asignar');
                   const studentImg = hasStudentObj && routine.student.photo
@@ -166,10 +180,10 @@ export default function Routines() {
 
                   const daysCount = Array.isArray(routine.days) ? routine.days.length : 0;
 
-                  const startStr = routine.startDate 
+                  const startStr = routine.startDate
                     ? new Date(routine.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : '';
-                  const endStr = routine.endDate 
+                  const endStr = routine.endDate
                     ? new Date(routine.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : 'Sin límite';
                   const period = `${startStr} - ${endStr}`;
@@ -199,13 +213,16 @@ export default function Routines() {
                       <td className="px-6 py-4">{getStatusBadge(routine.active)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => handleOpenView(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
+                          <button onClick={() => handleOpenView(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200" title="Ver rutina">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200">
+                          <button onClick={() => handleOpenEdit(routine)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200" title="Editar rutina">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteClick(routine._id || routine.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200">
+                          <button onClick={() => handleDuplicateClick(routine)} className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-gray-200" title="Duplicar rutina">
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteClick(routine._id || routine.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200" title="Eliminar rutina">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -220,17 +237,17 @@ export default function Routines() {
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
           <span>{`Mostrando ${filteredRoutines.length > 0 ? (page - 1) * 10 + 1 : 0} a ${Math.min(page * 10, totalDocs)} de ${totalDocs} rutinas`}</span>
           <div className="flex items-center gap-1">
-            <button 
-              disabled={page <= 1} 
-              onClick={() => setPage(page - 1)} 
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
               className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
               &lt;
             </button>
             <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-semibold">{page}</button>
-            <button 
-              disabled={page >= totalPages} 
-              onClick={() => setPage(page + 1)} 
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
               className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
               &gt;

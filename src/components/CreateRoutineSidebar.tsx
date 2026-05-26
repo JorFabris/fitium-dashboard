@@ -377,7 +377,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-lg font-bold text-gray-900">
-              {isViewOnly ? 'Ver rutina' : routineData ? 'Editar rutina' : 'Nueva rutina'}
+              {isViewOnly ? 'Ver rutina' : (routineData && routineData._id) ? 'Editar rutina' : 'Nueva rutina'}
             </h2>
             <p className="text-xs text-gray-500 mt-1">
               {isViewOnly ? 'Detalle completo de la rutina de entrenamiento.' : 'Completa la información para crear una nueva rutina de entrenamiento.'}
@@ -914,7 +914,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      <span>{routineData ? 'Guardar cambios' : 'Crear rutina'}</span>
+                      <span>{(routineData && routineData._id) ? 'Guardar cambios' : 'Crear rutina'}</span>
                     </>
                   )}
                 </button>

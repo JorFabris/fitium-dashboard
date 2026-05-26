@@ -7,6 +7,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { formatDate, formatCurrency } from '@/utils/formatters';
 import { CreateExpenseSidebar } from '@/components/CreateExpenseSidebar';
 import { toast } from 'react-toastify';
+import type { Expense } from '@/types';
 
 const categoryMap: { [key: string]: { label: string; className: string } } = {
   equipment: { label: 'Equipamiento', className: 'bg-purple-50 text-purple-700 border border-purple-100' },
@@ -19,7 +20,7 @@ const categoryMap: { [key: string]: { label: string; className: string } } = {
   other: { label: 'Otros', className: 'bg-gray-50 text-gray-700 border border-gray-100' }
 };
 
-const methodMap: { [key: string]: { label: string; className: string; icon: any } } = {
+const methodMap: { [key: string]: { label: string; className: string; icon: React.ComponentType<{ className?: string }> } } = {
   cash: { label: 'Efectivo', className: 'bg-emerald-50 text-emerald-700 border border-emerald-100', icon: Coins },
   card: { label: 'Tarjeta', className: 'bg-indigo-50 text-indigo-700 border border-indigo-100', icon: CreditCard },
   transfer: { label: 'Transferencia', className: 'bg-blue-50 text-blue-700 border border-blue-100', icon: Building2 }
@@ -41,7 +42,7 @@ const Expenses: React.FC = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'view' | 'edit' | 'create'>('create');
-  const [selectedExpense, setSelectedExpense] = useState<any | null>(null);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Local Filter States
@@ -78,13 +79,13 @@ const Expenses: React.FC = () => {
     setIsSidebarOpen(true);
   };
 
-  const handleOpenEdit = (expense: any) => {
+  const handleOpenEdit = (expense: Expense) => {
     setSelectedExpense(expense);
     setViewMode('edit');
     setIsSidebarOpen(true);
   };
 
-  const handleOpenView = (expense: any) => {
+  const handleOpenView = (expense: Expense) => {
     setSelectedExpense(expense);
     setViewMode('view');
     setIsSidebarOpen(true);
@@ -101,7 +102,7 @@ const Expenses: React.FC = () => {
     }
   };
 
-  const handleSidebarSubmit = async (data: any, id?: string) => {
+  const handleSidebarSubmit = async (data: Partial<Expense>, id?: string) => {
     if (id) {
       const success = await updateExpense(id, data);
       if (success) {
