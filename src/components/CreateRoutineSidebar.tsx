@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Check, Plus } from 'lucide-react';
+import { X, User, Check, Plus, Trash2, Dumbbell, ChevronDown, ChevronUp } from 'lucide-react';
 import { studentsService } from '@/services/students.service';
 import { coachesService } from '@/services/coaches.service';
 
@@ -44,6 +44,21 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
   const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
   const [coaches, setCoaches] = useState<any[]>([]);
 
+  // Detailed exercises per day state
+  const [workoutDays, setWorkoutDays] = useState<Record<string, { label: string, exercises: any[] }>>({});
+  const [activeAccordionTab, setActiveAccordionTab] = useState<string | null>(null);
+
+  // Compact exercise addition inputs state
+  const [newExercise, setNewExercise] = useState({
+    name: '',
+    sets: '',
+    reps: '',
+    weightKg: '',
+    durationSec: '',
+    restSec: '',
+    notes: ''
+  });
+
   // Fetch real coaches when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -73,7 +88,6 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
           }));
           setStudents(mapped);
           
-          // If editing and student data is populated but selection isn't loaded yet
           if (routineData && routineData.student) {
             const studentId = typeof routineData.student === 'object' ? routineData.student._id : routineData.student;
             const found = mapped.find((s: any) => s.id === studentId);
@@ -152,16 +166,32 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       updated = selectedDays.filter(d => d !== day);
     } else {
       updated = [...selectedDays, day];
+      if (!workoutDays[day]) {
+        setWorkoutDays(prev => ({
+          ...prev,
+          [day]: { label: '', exercises: [] }
+        }));
+      }
     }
     setSelectedDays(updated);
 
-    // Update daysCount select label text
     if (updated.length === 0) {
       setFormData(prev => ({ ...prev, daysCount: 'Seleccionar días' }));
     } else {
       setFormData(prev => ({ ...prev, daysCount: `${updated.length} días seleccionados (${updated.join(', ')})` }));
     }
   };
+
+  // Open first selected day automatically as accordion tab
+  useEffect(() => {
+    if (selectedDays.length > 0) {
+      if (!activeAccordionTab || !selectedDays.includes(activeAccordionTab)) {
+        setActiveAccordionTab(selectedDays[0]);
+      }
+    } else {
+      setActiveAccordionTab(null);
+    }
+  }, [selectedDays]);
 
   useEffect(() => {
     if (routineData && isOpen) {
@@ -186,7 +216,6 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
           });
           setStudentSearch(sName);
         } else {
-          // If it's a string, try finding in already loaded students
           const found = students.find(s => s.id === routineData.student);
           if (found) {
             setSelectedStudent(found);
@@ -199,16 +228,29 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       }
 
       if (Array.isArray(routineData.days)) {
-        const initialSelected = routineData.days
-          .map((d: any) => reverseDayMapping[d.day])
-          .filter(Boolean);
+        const initialSelected: string[] = [];
+        const daysMap: Record<string, { label: string, exercises: any[] }> = {};
+        
+        routineData.days.forEach((d: any) => {
+          const dayKey = reverseDayMapping[d.day];
+          if (dayKey) {
+            initialSelected.push(dayKey);
+            daysMap[dayKey] = {
+              label: d.label || '',
+              exercises: d.exercises || []
+            };
+          }
+        });
+        
         setSelectedDays(initialSelected);
+        setWorkoutDays(daysMap);
         setFormData(prev => ({
           ...prev,
           daysCount: `${initialSelected.length} días seleccionados (${initialSelected.join(', ')})`
         }));
       } else {
         setSelectedDays([]);
+        setWorkoutDays({});
       }
     } else if (!isOpen) {
       setFormData({
@@ -223,6 +265,17 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       setSelectedStudent(null);
       setStudentSearch('');
       setSelectedDays([]);
+      setWorkoutDays({});
+      setActiveAccordionTab(null);
+      setNewExercise({
+        name: '',
+        sets: '',
+        reps: '',
+        weightKg: '',
+        durationSec: '',
+        restSec: '',
+        notes: ''
+      });
     }
   }, [routineData, isOpen]);
 
@@ -233,6 +286,58 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleAddExercise = (dayKey: string) => {
+    if (!newExercise.name.trim()) {
+      alert('Por favor ingresa el nombre del ejercicio.');
+      return;
+    }
+
+    const exData: any = {
+      name: newExercise.name.trim()
+    };
+    if (newExercise.sets) exData.sets = Number(newExercise.sets);
+    if (newExercise.reps) exData.reps = Number(newExercise.reps);
+    if (newExercise.weightKg) exData.weightKg = Number(newExercise.weightKg);
+    if (newExercise.durationSec) exData.durationSec = Number(newExercise.durationSec);
+    if (newExercise.restSec) exData.restSec = Number(newExercise.restSec);
+    if (newExercise.notes.trim()) exData.notes = newExercise.notes.trim();
+
+    setWorkoutDays(prev => {
+      const currentExs = prev[dayKey]?.exercises || [];
+      return {
+        ...prev,
+        [dayKey]: {
+          ...prev[dayKey],
+          exercises: [...currentExs, exData]
+        }
+      };
+    });
+
+    setNewExercise({
+      name: '',
+      sets: '',
+      reps: '',
+      weightKg: '',
+      durationSec: '',
+      restSec: '',
+      notes: ''
+    });
+  };
+
+  const handleRemoveExercise = (dayKey: string, index: number) => {
+    setWorkoutDays(prev => {
+      const currentExs = [...(prev[dayKey]?.exercises || [])];
+      currentExs.splice(index, 1);
+      return {
+        ...prev,
+        [dayKey]: {
+          ...prev[dayKey],
+          exercises: currentExs
+        }
+      };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudent) {
@@ -241,11 +346,10 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     }
     setLoading(true);
 
-    // Map selected days to backend Format: IWorkoutDay[]
     const mappedDays = selectedDays.map(dayKey => ({
       day: dayMapping[dayKey],
-      label: dayKey,
-      exercises: []
+      label: workoutDays[dayKey]?.label || dayKey,
+      exercises: workoutDays[dayKey]?.exercises || []
     }));
 
     const payload = {
@@ -279,7 +383,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
               {isViewOnly ? 'Detalle completo de la rutina de entrenamiento.' : 'Completa la información para crear una nueva rutina de entrenamiento.'}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg transition-colors">
+          <button type="button" onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -478,6 +582,263 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
               <p className="text-[11px] text-gray-500">Selecciona los días en los que el estudiante realizará esta rutina.</p>
             </div>
 
+            {/* Ejercicios de la Rutina (Accordion Day Selector) */}
+            {selectedDays.length > 0 && (
+              <div className="border-t border-gray-50 pt-5 space-y-4">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Ejercicios por día</h3>
+                
+                <div className="space-y-3">
+                  {selectedDays.map(dayKey => {
+                    const isOpenTab = activeAccordionTab === dayKey;
+                    const exCount = workoutDays[dayKey]?.exercises?.length || 0;
+                    const focusLabel = workoutDays[dayKey]?.label || '';
+
+                    return (
+                      <div key={dayKey} className="border border-gray-150 rounded-2xl overflow-hidden bg-white shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                        {/* Header of Accordion Tab */}
+                        <button
+                          type="button"
+                          onClick={() => setActiveAccordionTab(isOpenTab ? null : dayKey)}
+                          className="w-full px-4 py-3 flex items-center justify-between text-sm bg-gray-50 hover:bg-gray-100/70 transition-colors border-b border-gray-100"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                              {dayKey}
+                            </span>
+                            <div className="text-left">
+                              <span className="font-bold text-gray-900">Entrenamiento</span>
+                              {focusLabel && (
+                                <span className="text-xs text-gray-400 font-semibold block leading-tight">
+                                  {focusLabel}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full">
+                              {exCount} ej.
+                            </span>
+                            {isOpenTab ? (
+                              <ChevronUp className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Exercises list / Editor inside Accordion Tab */}
+                        {isOpenTab && (
+                          <div className="p-4 space-y-4 bg-white divide-y divide-gray-50">
+                            
+                            {/* Focus/Label Input for the workout day */}
+                            <div className="space-y-1">
+                              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                Enfoque del día
+                              </label>
+                              <input
+                                type="text"
+                                readOnly={isViewOnly}
+                                value={focusLabel}
+                                onChange={(e) => {
+                                  setWorkoutDays(prev => ({
+                                    ...prev,
+                                    [dayKey]: {
+                                      ...prev[dayKey],
+                                      label: e.target.value
+                                    }
+                                  }));
+                                }}
+                                placeholder={isViewOnly ? "Sin enfoque especificado" : "Ej: Pecho y Tríceps / Fuerza"}
+                                className={`w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium ${isViewOnly ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : ''}`}
+                              />
+                            </div>
+
+                            {/* Loaded Exercises list */}
+                            <div className="pt-3 space-y-2.5">
+                              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                Ejercicios cargados
+                              </label>
+                              {exCount > 0 ? (
+                                <div className="space-y-2">
+                                  {workoutDays[dayKey]?.exercises.map((ex: any, idx: number) => (
+                                    <div key={idx} className="bg-gray-50 border border-gray-100 rounded-xl p-3 relative flex flex-col gap-1.5">
+                                      <div className="flex items-start justify-between pr-6">
+                                        <span className="text-xs font-bold text-gray-900 leading-normal flex items-center gap-1.5">
+                                          <Dumbbell className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                          {ex.name}
+                                        </span>
+                                        {!isViewOnly && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveExercise(dayKey, idx)}
+                                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-lg transition-all"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="flex flex-wrap gap-1.5 text-[10px]">
+                                        {ex.sets && (
+                                          <span className="bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-md border border-blue-100">
+                                            {ex.sets} series
+                                          </span>
+                                        )}
+                                        {ex.reps && (
+                                          <span className="bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded-md border border-indigo-100">
+                                            {ex.reps} reps
+                                          </span>
+                                        )}
+                                        {ex.weightKg && (
+                                          <span className="bg-green-50 text-green-600 font-bold px-2 py-0.5 rounded-md border border-green-100">
+                                            {ex.weightKg} kg
+                                          </span>
+                                        )}
+                                        {ex.durationSec && (
+                                          <span className="bg-orange-50 text-orange-600 font-bold px-2 py-0.5 rounded-md border border-orange-100">
+                                            {ex.durationSec}s dur.
+                                          </span>
+                                        )}
+                                        {ex.restSec && (
+                                          <span className="bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded-md border border-gray-200">
+                                            {ex.restSec}s desc.
+                                          </span>
+                                        )}
+                                      </div>
+                                      {ex.notes && (
+                                        <p className="text-[10px] text-gray-400 italic mt-0.5 font-medium leading-relaxed bg-white p-2 rounded-lg border border-gray-100">
+                                          {ex.notes}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center py-5 bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl">
+                                  <Dumbbell className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
+                                  <p className="text-[11px] text-gray-400 font-semibold">Sin ejercicios cargados para este día.</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Compact Exercise Creator Panel (Only if editable) */}
+                            {!isViewOnly && (
+                              <div className="pt-4 space-y-3 bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                  Agregar nuevo ejercicio
+                                </p>
+                                
+                                <div>
+                                  <input
+                                    type="text"
+                                    placeholder="Nombre del ejercicio (ej: Press de banca)"
+                                    value={newExercise.name}
+                                    onChange={(e) => setNewExercise(p => ({ ...p, name: e.target.value }))}
+                                    className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                  />
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div>
+                                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                      Sets
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      placeholder="Sets"
+                                      value={newExercise.sets}
+                                      onChange={(e) => setNewExercise(p => ({ ...p, sets: e.target.value }))}
+                                      className="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                      Reps
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      placeholder="Reps"
+                                      value={newExercise.reps}
+                                      onChange={(e) => setNewExercise(p => ({ ...p, reps: e.target.value }))}
+                                      className="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                      Peso (kg)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      placeholder="Kg"
+                                      value={newExercise.weightKg}
+                                      onChange={(e) => setNewExercise(p => ({ ...p, weightKg: e.target.value }))}
+                                      className="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                      Duración (s)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      placeholder="Segundos"
+                                      value={newExercise.durationSec}
+                                      onChange={(e) => setNewExercise(p => ({ ...p, durationSec: e.target.value }))}
+                                      className="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                      Descanso (s)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      placeholder="Segundos"
+                                      value={newExercise.restSec}
+                                      onChange={(e) => setNewExercise(p => ({ ...p, restSec: e.target.value }))}
+                                      className="w-full px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 font-medium bg-white"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <textarea
+                                    placeholder="Notas, ritmos, agarres..."
+                                    value={newExercise.notes}
+                                    onChange={(e) => setNewExercise(p => ({ ...p, notes: e.target.value }))}
+                                    rows={2}
+                                    className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 resize-none font-medium text-gray-600 bg-white"
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddExercise(dayKey)}
+                                  className="w-full flex items-center justify-center gap-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm cursor-pointer"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Agregar a {dayKey}</span>
+                                </button>
+                              </div>
+                            )}
+
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Entrenador */}
             <div className="border-t border-gray-50 pt-5 space-y-4">
               <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Entrenador</h3>
@@ -530,7 +891,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
               >
                 Aceptar
               </button>
@@ -539,14 +900,14 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
                 >
                   {loading ? (
                     <span>Guardando...</span>

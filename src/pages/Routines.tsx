@@ -54,11 +54,22 @@ export default function Routines() {
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
     if (id) {
-      await updateRoutine(id, data);
+      const success = await updateRoutine(id, data);
+      if (success) {
+        toast.success('Rutina actualizada correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al actualizar la rutina');
+      }
     } else {
-      await createRoutine(data);
+      const success = await createRoutine(data);
+      if (success) {
+        toast.success('Rutina creada correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al crear la rutina');
+      }
     }
-    setIsSidebarOpen(false);
   };
 
   const getStatusBadge = (active: boolean) => {

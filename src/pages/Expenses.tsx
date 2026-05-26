@@ -106,6 +106,7 @@ const Expenses: React.FC = () => {
       const success = await updateExpense(id, data);
       if (success) {
         toast.success('Gasto actualizado correctamente');
+        setIsSidebarOpen(false);
       } else {
         toast.error('Hubo un error al actualizar el gasto');
       }
@@ -113,6 +114,7 @@ const Expenses: React.FC = () => {
       const success = await createExpense(data);
       if (success) {
         toast.success('Gasto registrado correctamente');
+        setIsSidebarOpen(false);
       } else {
         toast.error('Hubo un error al registrar el gasto');
       }

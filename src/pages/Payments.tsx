@@ -65,11 +65,22 @@ export default function Payments() {
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
     if (id) {
-      await updatePayment(id, data);
+      const success = await updatePayment(id, data);
+      if (success) {
+        toast.success('Pago actualizado correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al actualizar el pago');
+      }
     } else {
-      await createPayment(data);
+      const success = await createPayment(data);
+      if (success) {
+        toast.success('Pago registrado correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al registrar el pago');
+      }
     }
-    setIsSidebarOpen(false);
   };
 
   const getStatusBadge = (status: string) => {

@@ -9,9 +9,6 @@ import {
   Trophy,
   CreditCard,
   Receipt,
-  Package,
-  FileBarChart,
-  Settings,
   Building2,
   ChevronDown,
   LogOut,
@@ -32,7 +29,7 @@ const MainLayout: React.FC = () => {
     if (userData) {
       try {
         setUser(JSON.parse(userData));
-      } catch(e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -56,16 +53,16 @@ const MainLayout: React.FC = () => {
     { name: 'Competencias', path: '/competitions', icon: Trophy },
     { name: 'Pagos', path: ROUTES.payments, icon: CreditCard },
     { name: 'Gastos', path: '/expenses', icon: Receipt },
-    { name: 'Productos', path: '/products', icon: Package },
-    { name: 'Reportes', path: '/reports', icon: FileBarChart },
-    { name: 'Configuración', path: ROUTES.settings, icon: Settings },
+    // { name: 'Productos', path: '/products', icon: Package },
+    // { name: 'Reportes', path: '/reports', icon: FileBarChart },
+    // { name: 'Configuración', path: ROUTES.settings, icon: Settings },
   ];
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans overflow-hidden">
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -78,7 +75,7 @@ const MainLayout: React.FC = () => {
           <div className="flex items-center gap-2">
             <img src={isologo} alt="Fitium Logo" className="h-8 lg:h-10 object-contain" />
           </div>
-          <button 
+          <button
             className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -151,8 +148,8 @@ const MainLayout: React.FC = () => {
           <div className="flex items-center gap-2">
             <img src={isologo} alt="Fitium" className="h-8 object-contain" />
           </div>
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)} 
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
           >
             <Menu className="w-6 h-6" />

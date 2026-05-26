@@ -65,11 +65,22 @@ export default function Classes() {
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
     if (id) {
-      await updateClass(id, data);
+      const success = await updateClass(id, data);
+      if (success) {
+        toast.success('Clase actualizada correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al actualizar la clase');
+      }
     } else {
-      await createClass(data);
+      const success = await createClass(data);
+      if (success) {
+        toast.success('Clase creada correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al crear la clase');
+      }
     }
-    setIsSidebarOpen(false);
   };
 
   const getStatusBadge = (active: boolean) => {

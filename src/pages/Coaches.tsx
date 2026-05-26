@@ -65,9 +65,21 @@ const Coaches: React.FC = () => {
 
   const handleSidebarSubmit = async (data: any, id?: string) => {
     if (id) {
-      await updateCoach(id, data);
+      const success = await updateCoach(id, data);
+      if (success) {
+        toast.success('Coach actualizado correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al actualizar al coach');
+      }
     } else {
-      await createCoach(data);
+      const success = await createCoach(data);
+      if (success) {
+        toast.success('Coach creado correctamente');
+        setIsSidebarOpen(false);
+      } else {
+        toast.error('Hubo un error al crear al coach');
+      }
     }
   };
 

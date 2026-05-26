@@ -118,6 +118,8 @@ const Students: React.FC = () => {
         toast.error('Error al actualizar las inscripciones de clases');
       }
     }
+
+    setIsSidebarOpen(false);
   };
 
   const getStatusBadge = (active: boolean) => {

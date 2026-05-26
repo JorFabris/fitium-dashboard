@@ -19,24 +19,56 @@ export const LOGIN_TEXTS = {
 };
 
 export const DASHBOARD_TEXTS = {
-  HOME: {
-    TITLE: 'Dashboard',
-    SUBTITLE: 'Resumen general del box',
-  },
+  ERROR_LOADING: 'Error al cargar los datos del dashboard. Por favor, intenta de nuevo más tarde.',
+  LAST_ACCESS: 'Último acceso:',
+  BTN_REPORTS: 'Reportes',
+  BTN_NEW_STUDENT: 'Nuevo alumno',
+  METRICS_TITLE: 'MÉTRICAS CLAVE DEL MES',
   KPIS: {
-    INCOME: 'Ingresos mensuales',
-    EXPENSES: 'Gastos mensuales',
-    PROFIT: 'Ganancia neta',
     ACTIVE_STUDENTS: 'Alumnos activos',
-    EXPIRED_MEMBERSHIPS: 'Mensualidades vencidas',
+    MONTHLY_INCOME: 'Ingresos del mes',
+    MONTHLY_RETENTION: 'Retención mensual',
+    PENDING_PAYMENTS: 'Pagos pendientes',
+  },
+  QUICK_ACTIONS_TITLE: 'ACCIONES RÁPIDAS',
+  ACTIONS: {
+    REGISTER_PAYMENT: 'Registrar pago',
+    MANUAL_CHECKIN: 'Checkin manual',
+    MESSAGE_INACTIVE: 'Mensaje a inactivos',
+    NEW_CLASS: 'Nueva clase',
+    EXPORT_COLLECTIONS: 'Exportar cobranzas',
   },
   WIDGETS: {
-    TODAYS_CLASSES: 'Clases del día',
-    RESERVATIONS: 'Reservas',
-    LOW_STOCK: 'Stock bajo',
-    IMPORTANT_ALERTS: 'Alertas importantes',
-    TOP_STUDENTS: 'Top alumnos',
-    QUICK_ACTIONS: 'Acciones rápidas',
+    TODAYS_ALERTS: 'Alertas de hoy',
+    TODAYS_CLASSES: 'Clases de hoy',
+    RISK_STUDENTS: 'Alumnos en riesgo',
+    GROWTH_CHURN: 'Altas y bajas del mes',
+    AVERAGE_OCCUPANCY: 'Ocupación promedio / clase',
+  },
+  LINKS: {
+    VIEW_ALL: 'Ver todas',
+    VIEW_WEEK: 'Ver semana',
+    VIEW_ALL_PLURAL: 'Ver todos',
+  },
+  RISK: {
+    DAYS: 'días',
+  },
+  GROWTH: {
+    NEW_STUDENTS: 'Nuevos alumnos',
+    CONFIRMED_CHURN: 'Bajas confirmadas',
+    NET_GROWTH: 'Crecimiento neto',
+    EXPIRING_CONTRACTS: 'Contratos a vencer (7d)',
+    AVERAGE_TICKET: 'Ticket promedio',
+  },
+  EMPTY_STATES: {
+    ALERTS_TITLE: 'Todo en orden',
+    ALERTS_DESC: 'No hay alertas importantes para el día de hoy.',
+    CLASSES_TITLE: 'Sin clases para hoy',
+    CLASSES_DESC: 'No hay clases programadas o activas en este día.',
+    RISK_TITLE: '¡Gran trabajo!',
+    RISK_DESC: 'No hay alumnos con cuotas vencidas o en riesgo de baja.',
+    OCCUPANCY_TITLE: 'Sin datos de clases',
+    OCCUPANCY_DESC: 'Registra clases activas para ver el promedio de ocupación.',
   }
 };
 
