@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { X, User, Check, Plus, Trash2, Dumbbell, ChevronDown, ChevronUp } from 'lucide-react';
 import { studentsService } from '@/services/students.service';
 import { coachesService } from '@/services/coaches.service';
+import { classesService } from '@/services/classes.service';
+import type { Routine, Exercise, Student, Class } from '@/types';
 
 interface CreateRoutineSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any, id?: string) => Promise<void>;
-  routineData?: any | null;
+  onSubmit: (data: Partial<Routine>, id?: string) => Promise<void>;
+  routineData?: Routine | null;
   isViewOnly?: boolean;
 }
 
@@ -38,14 +40,21 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
   routineData,
   isViewOnly = false
 }) => {
-  const [students, setStudents] = useState<any[]>([]);
+  const [targetType, setTargetType] = useState<'student' | 'class'>('student');
+  const [students, setStudents] = useState<{ id: string; name: string; img: string }[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<{ id: string; name: string; img: string } | null>(null);
   const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
-  const [coaches, setCoaches] = useState<any[]>([]);
+
+  const [classesList, setClassesList] = useState<{ id: string; name: string }[]>([]);
+  const [classSearch, setClassSearch] = useState('');
+  const [selectedClass, setSelectedClass] = useState<{ id: string; name: string } | null>(null);
+  const [showClassSuggestions, setShowClassSuggestions] = useState(false);
+
+  const [coaches, setCoaches] = useState<{ id: string; name: string }[]>([]);
 
   // Detailed exercises per day state
-  const [workoutDays, setWorkoutDays] = useState<Record<string, { label: string, exercises: any[] }>>({});
+  const [workoutDays, setWorkoutDays] = useState<Record<string, { label: string, exercises: Exercise[] }>>({});
   const [activeAccordionTab, setActiveAccordionTab] = useState<string | null>(null);
 
   // Compact exercise addition inputs state
@@ -81,7 +90,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     if (isOpen) {
       studentsService.getPaginated(1, 100).then((res) => {
         if (res && res.data) {
-          const mapped = res.data.map((s: any) => ({
+          const mapped: { id: string; name: string; img: string }[] = res.data.map((s: Student) => ({
             id: s._id,
             name: `${s.firstName} ${s.lastName}`,
             img: s.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop'
@@ -90,15 +99,43 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
           
           if (routineData && routineData.student) {
             const studentId = typeof routineData.student === 'object' ? routineData.student._id : routineData.student;
-            const found = mapped.find((s: any) => s.id === studentId);
+            const found = mapped.find((s) => s.id === studentId);
             if (found) {
               setSelectedStudent(found);
               setStudentSearch(found.name);
+              setTargetType('student');
             }
           }
         }
       }).catch((err) => {
         console.error('Error fetching students:', err);
+      });
+    }
+  }, [isOpen, routineData]);
+
+  // Fetch real classes when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      classesService.getPaginated(1, 100).then((res) => {
+        if (res && res.data) {
+          const mapped: { id: string; name: string }[] = res.data.map((c: Class) => ({
+            id: c._id,
+            name: c.name
+          }));
+          setClassesList(mapped);
+          
+          if (routineData && routineData.class) {
+            const classId = typeof routineData.class === 'object' ? routineData.class._id : routineData.class;
+            const found = mapped.find((c) => c.id === classId);
+            if (found) {
+              setSelectedClass(found);
+              setClassSearch(found.name);
+              setTargetType('class');
+            }
+          }
+        }
+      }).catch((err) => {
+        console.error('Error fetching classes:', err);
       });
     }
   }, [isOpen, routineData]);
@@ -206,6 +243,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       });
 
       if (routineData.student) {
+        setTargetType('student');
         if (typeof routineData.student === 'object') {
           const studentObj = routineData.student;
           const sName = `${studentObj.firstName} ${studentObj.lastName}`;
@@ -225,11 +263,30 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
             setStudentSearch('Cargando...');
           }
         }
+      } else if (routineData.class) {
+        setTargetType('class');
+        if (typeof routineData.class === 'object') {
+          const classObj = routineData.class;
+          setSelectedClass({
+            id: classObj._id,
+            name: classObj.name
+          });
+          setClassSearch(classObj.name);
+        } else {
+          const found = classesList.find(c => c.id === routineData.class);
+          if (found) {
+            setSelectedClass(found);
+            setClassSearch(found.name);
+          } else {
+            setSelectedClass({ id: routineData.class, name: 'Cargando...' });
+            setClassSearch('Cargando...');
+          }
+        }
       }
 
       if (Array.isArray(routineData.days)) {
         const initialSelected: string[] = [];
-        const daysMap: Record<string, { label: string, exercises: any[] }> = {};
+        const daysMap: Record<string, { label: string, exercises: Exercise[] }> = {};
         
         routineData.days.forEach((d: any) => {
           const dayKey = reverseDayMapping[d.day];
@@ -264,6 +321,9 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       });
       setSelectedStudent(null);
       setStudentSearch('');
+      setSelectedClass(null);
+      setClassSearch('');
+      setTargetType('student');
       setSelectedDays([]);
       setWorkoutDays({});
       setActiveAccordionTab(null);
@@ -277,7 +337,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
         notes: ''
       });
     }
-  }, [routineData, isOpen]);
+  }, [routineData, isOpen, students, classesList]);
 
   if (!isOpen) return null;
 
@@ -292,7 +352,7 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
       return;
     }
 
-    const exData: any = {
+    const exData: Exercise = {
       name: newExercise.name.trim()
     };
     if (newExercise.sets) exData.sets = Number(newExercise.sets);
@@ -340,8 +400,12 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedStudent) {
+    if (targetType === 'student' && !selectedStudent) {
       alert('Por favor selecciona un estudiante.');
+      return;
+    }
+    if (targetType === 'class' && !selectedClass) {
+      alert('Por favor selecciona una clase.');
       return;
     }
     setLoading(true);
@@ -353,7 +417,8 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
     }));
 
     const payload = {
-      student: selectedStudent.id,
+      student: targetType === 'student' ? selectedStudent?.id : undefined,
+      class: targetType === 'class' ? selectedClass?.id : undefined,
       name: formData.name,
       description: formData.description,
       startDate: formData.startDate ? new Date(formData.startDate).toISOString() : new Date().toISOString(),
@@ -391,84 +456,184 @@ export const CreateRoutineSidebar: React.FC<CreateRoutineSidebarProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between">
           <div className="p-6 space-y-6 flex-1">
-            
-            {/* Estudiante Autocomplete */}
-            <div className="relative">
+            {/* Target Type Selector */}
+            <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Estudiante <span className="text-red-500">*</span>
+                Destinatario de la rutina <span className="text-red-500">*</span>
               </label>
-              <div className="relative flex items-center">
-                {selectedStudent ? (
-                  <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
-                    <img src={selectedStudent.img} alt={selectedStudent.name} className="w-5 h-5 rounded-full object-cover" />
-                  </div>
-                ) : (
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
-                )}
-                <input
-                  required
-                  type="text"
-                  readOnly={isViewOnly}
-                  placeholder={isViewOnly ? "" : "Buscar estudiante por nombre..."}
-                  value={studentSearch}
-                  onFocus={() => !isViewOnly && setShowStudentSuggestions(true)}
-                  onChange={(e) => {
-                    if (isViewOnly) return;
-                    setStudentSearch(e.target.value);
-                    if (selectedStudent && e.target.value !== selectedStudent.name) {
-                      setSelectedStudent(null);
-                    }
-                  }}
-                  className={`w-full ${selectedStudent ? 'pl-10' : 'pl-9'} pr-9 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
-                />
-                {selectedStudent && !isViewOnly && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedStudent(null);
-                      setStudentSearch('');
+              <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg">
+                <button
+                  type="button"
+                  disabled={isViewOnly}
+                  onClick={() => setTargetType('student')}
+                  className={`py-1.5 text-xs font-semibold rounded-md transition-all ${targetType === 'student' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Estudiante
+                </button>
+                <button
+                  type="button"
+                  disabled={isViewOnly}
+                  onClick={() => setTargetType('class')}
+                  className={`py-1.5 text-xs font-semibold rounded-md transition-all ${targetType === 'class' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Clase
+                </button>
+              </div>
+            </div>
+
+            {targetType === 'student' ? (
+              /* Estudiante Autocomplete */
+              <div className="relative">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Estudiante <span className="text-red-500">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  {selectedStudent ? (
+                    <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
+                      <img src={selectedStudent.img} alt={selectedStudent.name} className="w-5 h-5 rounded-full object-cover" />
+                    </div>
+                  ) : (
+                    <User className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
+                  )}
+                  <input
+                    required
+                    type="text"
+                    readOnly={isViewOnly}
+                    placeholder={isViewOnly ? "" : "Buscar estudiante por nombre..."}
+                    value={studentSearch}
+                    onFocus={() => !isViewOnly && setShowStudentSuggestions(true)}
+                    onChange={(e) => {
+                      if (isViewOnly) return;
+                      setStudentSearch(e.target.value);
+                      if (selectedStudent && e.target.value !== selectedStudent.name) {
+                        setSelectedStudent(null);
+                      }
                     }}
-                    className="absolute right-3 p-0.5 text-gray-400 hover:bg-gray-100 rounded-full"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                    className={`w-full ${selectedStudent ? 'pl-10' : 'pl-9'} pr-9 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
+                  />
+                  {selectedStudent && !isViewOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedStudent(null);
+                        setStudentSearch('');
+                      }}
+                      className="absolute right-3 p-0.5 text-gray-400 hover:bg-gray-100 rounded-full"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">Selecciona el estudiante al que asignarás esta rutina.</p>
+
+                {/* Suggestion Dropdown */}
+                {showStudentSuggestions && studentSearch !== selectedStudent?.name && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowStudentSuggestions(false)} />
+                    <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto divide-y divide-gray-50">
+                      {filteredStudents.length > 0 ? (
+                        filteredStudents.map((student) => (
+                          <button
+                            key={student.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedStudent(student);
+                              setStudentSearch(student.name);
+                              setShowStudentSuggestions(false);
+                            }}
+                            className="w-full px-4 py-2.5 text-left hover:bg-blue-50/50 flex items-center justify-between text-sm transition-colors"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <img src={student.img} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
+                              <span className="font-semibold text-gray-900">{student.name}</span>
+                            </div>
+                            {selectedStudent?.id === student.id && (
+                              <Check className="w-4 h-4 text-blue-600" />
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-gray-500 italic">No se encontraron estudiantes</div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
-              <p className="text-[11px] text-gray-500 mt-1">Selecciona el estudiante al que asignarás esta rutina.</p>
+            ) : (
+              /* Clase Autocomplete */
+              <div className="relative">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Clase <span className="text-red-500">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Dumbbell className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
+                  <input
+                    required
+                    type="text"
+                    readOnly={isViewOnly}
+                    placeholder={isViewOnly ? "" : "Buscar clase por nombre..."}
+                    value={classSearch}
+                    onFocus={() => !isViewOnly && setShowClassSuggestions(true)}
+                    onChange={(e) => {
+                      if (isViewOnly) return;
+                      setClassSearch(e.target.value);
+                      if (selectedClass && e.target.value !== selectedClass.name) {
+                        setSelectedClass(null);
+                      }
+                    }}
+                    className="w-full pl-9 pr-9 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium bg-white"
+                  />
+                  {selectedClass && !isViewOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedClass(null);
+                        setClassSearch('');
+                      }}
+                      className="absolute right-3 p-0.5 text-gray-400 hover:bg-gray-100 rounded-full"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">Selecciona la clase a la que asignarás esta rutina.</p>
 
-              {/* Suggestion Dropdown */}
-              {showStudentSuggestions && studentSearch !== selectedStudent?.name && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowStudentSuggestions(false)} />
-                  <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto divide-y divide-gray-50">
-                    {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
-                        <button
-                          key={student.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setStudentSearch(student.name);
-                            setShowStudentSuggestions(false);
-                          }}
-                          className="w-full px-4 py-2.5 text-left hover:bg-blue-50/50 flex items-center justify-between text-sm transition-colors"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <img src={student.img} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
-                            <span className="font-semibold text-gray-900">{student.name}</span>
-                          </div>
-                          {selectedStudent?.id === student.id && (
-                            <Check className="w-4 h-4 text-blue-600" />
-                          )}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 italic">No se encontraron estudiantes</div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
+                {/* Suggestion Dropdown */}
+                {showClassSuggestions && classSearch !== selectedClass?.name && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowClassSuggestions(false)} />
+                    <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto divide-y divide-gray-50">
+                      {classesList.filter(c => c.name.toLowerCase().includes(classSearch.toLowerCase())).length > 0 ? (
+                        classesList
+                          .filter(c => c.name.toLowerCase().includes(classSearch.toLowerCase()))
+                          .map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedClass(c);
+                                setClassSearch(c.name);
+                                setShowClassSuggestions(false);
+                              }}
+                              className="w-full px-4 py-2.5 text-left hover:bg-blue-50/50 flex items-center justify-between text-sm transition-colors"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <Dumbbell className="w-4 h-4 text-gray-600 animate-pulse" />
+                                <span className="font-semibold text-gray-900">{c.name}</span>
+                              </div>
+                              {selectedClass?.id === c.id && (
+                                <Check className="w-4 h-4 text-blue-600" />
+                              )}
+                            </button>
+                          ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-gray-500 italic">No se encontraron clases</div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Información General */}
             <div className="border-t border-gray-50 pt-5 space-y-4">

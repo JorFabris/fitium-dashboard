@@ -1,4 +1,5 @@
 import type { Student } from './student';
+import type { Class } from './class';
 
 export type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -20,7 +21,8 @@ export interface WorkoutDay {
 
 export interface Routine {
   _id: string;
-  student: string | Student;
+  student?: string | Student;
+  class?: string | Class;
   name: string;
   description?: string;
   days: WorkoutDay[];

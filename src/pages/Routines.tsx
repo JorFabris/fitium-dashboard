@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { ROUTINES_TEXTS } from '@/constants/texts';
 import { CreateRoutineSidebar } from '@/components/CreateRoutineSidebar';
 import { useRoutines } from '@/hooks/useRoutines';
-import type { Routine } from '@/types';
+import type { Routine, Class, Student } from '@/types';
 
 export default function Routines() {
   const {
@@ -101,16 +101,27 @@ export default function Routines() {
 
     let studentMatch = false;
     if (routine.student) {
-      if (typeof routine.student === 'object') {
-        studentMatch = `${routine.student.firstName} ${routine.student.lastName}`
+      if (typeof routine.student === 'object' && routine.student !== null) {
+        const studentObj = routine.student as Student;
+        studentMatch = `${studentObj.firstName} ${studentObj.lastName}`
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
       } else {
-        studentMatch = routine.student.toLowerCase().includes(searchQuery.toLowerCase());
+        studentMatch = (routine.student as string).toLowerCase().includes(searchQuery.toLowerCase());
       }
     }
 
-    return nameMatch || descriptionMatch || studentMatch;
+    let classMatch = false;
+    if (routine.class) {
+      if (typeof routine.class === 'object' && routine.class !== null) {
+        const classObj = routine.class as Class;
+        classMatch = classObj.name.toLowerCase().includes(searchQuery.toLowerCase());
+      } else {
+        classMatch = (routine.class as string).toLowerCase().includes(searchQuery.toLowerCase());
+      }
+    }
+
+    return nameMatch || descriptionMatch || studentMatch || classMatch;
   });
 
   return (
@@ -170,13 +181,20 @@ export default function Routines() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filteredRoutines.map((routine) => {
-                  const hasStudentObj = routine.student && typeof routine.student === 'object';
-                  const studentName = hasStudentObj
-                    ? `${routine.student.firstName} ${routine.student.lastName}`
-                    : (routine.student || 'Sin asignar');
-                  const studentImg = hasStudentObj && routine.student.photo
-                    ? routine.student.photo
+                  const hasStudentObj = routine.student && typeof routine.student === 'object' && routine.student !== null;
+                  const studentObj = hasStudentObj ? (routine.student as Student) : null;
+                  const studentName = studentObj
+                    ? `${studentObj.firstName} ${studentObj.lastName}`
+                    : (routine.student as string || '');
+                  const studentImg = studentObj && studentObj.photo
+                    ? studentObj.photo
                     : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop';
+
+                  const hasClassObj = routine.class && typeof routine.class === 'object' && routine.class !== null;
+                  const classObj = hasClassObj ? (routine.class as Class) : null;
+                  const className = classObj
+                    ? classObj.name
+                    : (routine.class as string || '');
 
                   const daysCount = Array.isArray(routine.days) ? routine.days.length : 0;
 
@@ -202,10 +220,19 @@ export default function Routines() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <img src={studentImg} alt={studentName} className="w-8 h-8 rounded-full object-cover" />
-                          <span className="font-medium text-gray-900">{studentName}</span>
-                        </div>
+                        {routine.class ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                              <Dumbbell className="w-4 h-4" />
+                            </div>
+                            <span className="font-semibold text-indigo-700 bg-indigo-50/50 px-2 py-0.5 rounded text-xs">Clase: {className || 'Cargando...'}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <img src={studentImg} alt={studentName} className="w-8 h-8 rounded-full object-cover" />
+                            <span className="font-medium text-gray-900">{studentName || 'Sin asignar'}</span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-gray-900 font-medium text-[13px]">{daysCount} días</td>
                       <td className="px-6 py-4 text-gray-600 text-xs whitespace-pre-wrap">{period.replace(' - ', '\n- ')}</td>
