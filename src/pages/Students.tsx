@@ -66,9 +66,9 @@ const Students: React.FC = () => {
 
   const handleSidebarSubmit = async (data: Partial<Student> & { selectedClasses?: string[] }, id?: string) => {
     const { selectedClasses, ...studentPayload } = data;
-    
+
     let targetStudentId = id;
-    
+
     if (id) {
       const success = await updateStudent(id, studentPayload);
       if (!success) {
@@ -91,14 +91,14 @@ const Students: React.FC = () => {
         // Sync class enrollments
         const response = await classesService.getPaginated(1, 100);
         const allClasses = response.data || [];
-        
+
         for (const classObj of allClasses) {
           const currentBookings = classObj.bookings || [];
-          const isCurrentlyEnrolled = currentBookings.some((b: string | { _id: string }) => 
+          const isCurrentlyEnrolled = currentBookings.some((b: string | { _id: string }) =>
             typeof b === 'object' ? b._id === targetStudentId : b === targetStudentId
           );
           const shouldBeEnrolled = selectedClasses.includes(classObj._id);
-          
+
           const bookingIds = currentBookings.map((b: string | { _id: string }) => typeof b === 'object' ? b._id : b);
 
           if (shouldBeEnrolled && !isCurrentlyEnrolled) {
@@ -247,7 +247,7 @@ const Students: React.FC = () => {
                           {getPaymentBadge(student.lastPayment)}
                           {student.lastPayment && (
                             <p className="text-xs text-gray-500 mt-1">
-                              {formatDate(student.lastPayment.paidAt || student.lastPayment.dueDate)} • {formatCurrency(student.lastPayment.amount)}
+                              {formatDate(student.lastPayment.dueDate || student.lastPayment.paidAt)} • {formatCurrency(student.lastPayment.amount)}
                             </p>
                           )}
                         </div>

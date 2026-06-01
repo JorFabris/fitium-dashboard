@@ -107,7 +107,7 @@ const MainLayout: React.FC = () => {
 
         {/* Bottom Section: Box & User */}
         <div className="p-4 border-t border-gray-100 flex flex-col gap-4 shrink-0 bg-white">
-          <div className="flex items-center justify-between px-2 cursor-pointer group">
+          {/* <div className="flex items-center justify-between px-2 cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
                 <Building2 className="w-4 h-4 text-gray-600" />
@@ -118,7 +118,7 @@ const MainLayout: React.FC = () => {
               </div>
             </div>
             <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 shrink-0" />
-          </div>
+          </div> */}
 
           <div className="flex items-center justify-between px-2 cursor-pointer group">
             <div className="flex items-center gap-3 min-w-0">

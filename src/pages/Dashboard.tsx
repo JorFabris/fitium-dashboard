@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
     <div className="bg-[#F8F9FA] text-gray-900 p-6 md:p-8 -m-4 md:-m-8 min-h-[calc(100vh-4rem)] lg:min-h-screen font-sans flex flex-col gap-6">
 
       {/* Main Header Row */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{header.gymName} — Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -109,7 +109,7 @@ const Dashboard: React.FC = () => {
             <span>{DASHBOARD_TEXTS.BTN_NEW_STUDENT}</span>
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Métricas Clave Section */}
       <div className="space-y-3">
