@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Plus, Bell, FileText, AlertTriangle, ChevronRight, Loader2
+  AlertTriangle, ChevronRight, Loader2
 } from 'lucide-react';
 import { dashboardService } from '@/services/dashboard.service';
 import { DASHBOARD_TEXTS } from '@/constants/texts';
@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const { header, kpis, alertasHoy, clasesHoy, alumnosRiesgo, altasBajas, ocupacionPromedio } = data;
+  const { kpis, alertasHoy, clasesHoy, alumnosRiesgo, altasBajas, ocupacionPromedio } = data;
 
   const getClassOccupancyStyle = (percentage: number) => {
     if (percentage >= 75) {

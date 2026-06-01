@@ -9,8 +9,6 @@ import {
   Trophy,
   CreditCard,
   Receipt,
-  Building2,
-  ChevronDown,
   LogOut,
   Menu,
   X
