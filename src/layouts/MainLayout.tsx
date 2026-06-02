@@ -10,17 +10,20 @@ import {
   Receipt,
   LogOut,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { ROUTES } from '../routes/routes';
 import isologo from '../assets/isologo.png';
 import { EditUserSidebar } from '../components/EditUserSidebar';
 import { usersService } from '../services/users.service';
+import { dashboardSectionsService } from '../services/dashboard-sections.service';
 
 const MainLayout: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [sectionsConfig, setSectionsConfig] = useState<any[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,6 +34,10 @@ const MainLayout: React.FC = () => {
         setUser(JSON.parse(userData));
       } catch (e) { }
     }
+
+    dashboardSectionsService.getAll()
+      .then(data => setSectionsConfig(data || []))
+      .catch(console.error);
   }, []);
 
   // Close mobile menu when route changes
@@ -72,13 +79,36 @@ const MainLayout: React.FC = () => {
     { name: 'Coaches', path: ROUTES.coaches, icon: UserSquare2 },
     { name: 'Clases', path: ROUTES.classes, icon: Calendar },
     { name: 'Rutinas', path: '/routines', icon: ClipboardList },
-    // { name: 'Competencias', path: '/competitions', icon: Trophy },
     { name: 'Pagos', path: ROUTES.payments, icon: CreditCard },
     { name: 'Gastos', path: '/expenses', icon: Receipt },
-    // { name: 'Productos', path: '/products', icon: Package },
-    // { name: 'Reportes', path: '/reports', icon: FileBarChart },
-    // { name: 'Configuración', path: ROUTES.settings, icon: Settings },
+    { name: 'Configuración', path: ROUTES.settings, icon: Settings },
   ];
+
+  const filteredNavItems = navItems.filter(item => {
+    // Normalizamos el nombre del ítem en caso de que en la BD diga "Estudiantes" pero aquí "Alumnos"
+    const itemName = item.name.toLowerCase() === 'alumnos' ? 'estudiantes' : item.name.toLowerCase();
+    
+    const config = sectionsConfig.find(s => 
+      s.sectionName.toLowerCase() === itemName || 
+      (s.sectionName.toLowerCase() === 'configuracion' && itemName === 'configuración') ||
+      (s.sectionName.toLowerCase() === 'configuración' && itemName === 'configuracion')
+    );
+    
+    if (config) {
+      if (!config.isEnabled) return false;
+      
+      if (user && user.role) {
+        // En Fitium, owner y admin pueden verse como "admin" para permisos de secciones
+        let roleForConfig = user.role.toLowerCase();
+        if (roleForConfig === 'owner') roleForConfig = 'admin';
+        
+        if (!config.allowedRoles.includes(roleForConfig)) {
+          return false;
+        }
+      }
+    }
+    return true; // Si no hay configuración creada para la sección, la mostramos por defecto
+  });
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] font-sans overflow-hidden">
@@ -107,7 +137,7 @@ const MainLayout: React.FC = () => {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink

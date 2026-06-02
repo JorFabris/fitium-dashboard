@@ -8,6 +8,7 @@ import Routines from './pages/Routines';
 import Classes from './pages/Classes';
 import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
+import Settings from './pages/Settings';
 import MainLayout from './layouts/MainLayout';
 import { ROUTES } from './routes/routes';
 
@@ -43,7 +44,7 @@ function App() {
           <Route path={ROUTES.classes} element={<Classes />} />
           <Route path={ROUTES.payments} element={<Payments />} />
           <Route path={ROUTES.expenses} element={<Expenses />} />
-          <Route path={ROUTES.settings} element={<div className="p-8">Sección de Configuración en construcción</div>} />
+          <Route path={ROUTES.settings} element={<Settings />} />
         </Route>
 
         <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
