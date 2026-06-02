@@ -6,7 +6,6 @@ import {
   UserSquare2,
   Calendar,
   ClipboardList,
-  Trophy,
   CreditCard,
   Receipt,
   LogOut,
@@ -50,7 +49,7 @@ const MainLayout: React.FC = () => {
     if (!user?._id) return;
     try {
       const response = await usersService.update(user._id, data);
-      
+
       // Update local state and localStorage with the returned updated user data
       // If the backend returns the user in response.user or similar, adjust this.
       // Assuming it returns the updated user object directly or we merge it.
@@ -143,7 +142,7 @@ const MainLayout: React.FC = () => {
             <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 shrink-0" />
           </div> */}
 
-          <div 
+          <div
             className="flex items-center justify-between px-2 cursor-pointer group"
             onClick={() => setIsEditUserOpen(true)}
           >
@@ -187,7 +186,7 @@ const MainLayout: React.FC = () => {
         </div>
       </main>
 
-      <EditUserSidebar 
+      <EditUserSidebar
         isOpen={isEditUserOpen}
         onClose={() => setIsEditUserOpen(false)}
         onSubmit={handleEditUserSubmit}
