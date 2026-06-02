@@ -68,6 +68,21 @@ export const usePayments = () => {
     }
   };
 
+  const generatePayments = async () => {
+    try {
+      setLoading(true);
+      const res = await paymentsService.generate();
+      await fetchPayments(1);
+      setPage(1);
+      return res; // return response to show how many were generated
+    } catch (error) {
+      console.error('Error generating payments:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPayments(page);
   }, [page]);
@@ -83,6 +98,7 @@ export const usePayments = () => {
     fetchPayments,
     createPayment,
     updatePayment,
-    deletePayment
+    deletePayment,
+    generatePayments
   };
 };

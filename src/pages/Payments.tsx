@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Eye, Edit2, Trash2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Download, Eye, Edit2, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
 import { CreatePaymentSidebar } from '@/components/CreatePaymentSidebar';
 import { usePayments } from '@/hooks/usePayments';
 import { toast } from 'react-toastify';
@@ -27,8 +27,11 @@ export default function Payments() {
     totalDocs,
     createPayment,
     updatePayment,
-    deletePayment
+    deletePayment,
+    generatePayments
   } = usePayments();
+
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -81,6 +84,19 @@ export default function Payments() {
       } else {
         toast.error('Hubo un error al registrar el pago');
       }
+    }
+  };
+
+  const handleGenerateClick = async () => {
+    if (window.confirm('¿Estás seguro de que deseas generar las cuotas del mes actual para todos los alumnos activos? Las cuotas ya existentes no se duplicarán.')) {
+      setIsGenerating(true);
+      const res = await generatePayments();
+      if (res && res.ok) {
+        toast.success(`Se generaron ${res.data.createdCount} cuotas correctamente`);
+      } else {
+        toast.error('Hubo un error al generar las cuotas');
+      }
+      setIsGenerating(false);
     }
   };
 
@@ -140,7 +156,15 @@ export default function Payments() {
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors bg-white shadow-sm shrink-0">
+            <button 
+              onClick={handleGenerateClick}
+              disabled={isGenerating}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors bg-white shadow-sm shrink-0 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 text-gray-500 shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>Generar Cuotas</span>
+            </button>
+            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors bg-white shadow-sm shrink-0 hidden sm:flex">
               <Download className="w-4 h-4 text-gray-500 shrink-0" />
               <span>Exportar</span>
             </button>

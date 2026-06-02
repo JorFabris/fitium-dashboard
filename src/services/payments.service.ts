@@ -18,5 +18,9 @@ export const paymentsService = {
   delete: async (id: string) => {
     const response = await api.delete(`/api/v1/monthly-fees/delete/${id}`);
     return response.data;
+  },
+  generate: async () => {
+    const response = await api.post('/api/v1/monthly-fees/generate');
+    return response.data;
   }
 };
