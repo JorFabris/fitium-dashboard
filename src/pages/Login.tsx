@@ -1,8 +1,10 @@
 import React from 'react';
-import { Mail, Lock, Eye, EyeOff, Activity, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Activity, Loader2, KeyRound } from 'lucide-react';
 import { useLogin } from '../hooks/useLogin';
 import logo from '../assets/logo.png';
 import { LOGIN_TEXTS } from '../constants/texts';
+import { usersService } from '../services/users.service';
+import { toast } from 'react-toastify';
 
 const Login: React.FC = () => {
   const {
@@ -16,6 +18,44 @@ const Login: React.FC = () => {
     error,
     handleLogin
   } = useLogin();
+
+  const [recoveryStep, setRecoveryStep] = React.useState<0 | 1 | 2>(0); // 0: Login, 1: Email, 2: Code & Reset
+  const [recoveringEmail, setRecoveringEmail] = React.useState('');
+  const [recoveryCode, setRecoveryCode] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [recoverLoading, setRecoverLoading] = React.useState(false);
+
+  const handleRecoverPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveringEmail) return;
+    setRecoverLoading(true);
+    try {
+      const response = await usersService.recoverPassword(recoveringEmail);
+      toast.success(response.message || 'Código enviado si el correo es válido.');
+      setRecoveryStep(2);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Error al intentar recuperar la contraseña.');
+    } finally {
+      setRecoverLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveryCode || !newPassword) return;
+    setRecoverLoading(true);
+    try {
+      const response = await usersService.resetPassword(recoveringEmail, recoveryCode, newPassword);
+      toast.success(response.message || 'Contraseña actualizada exitosamente.');
+      setRecoveryStep(0);
+      setRecoveryCode('');
+      setNewPassword('');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Código inválido o expirado.');
+    } finally {
+      setRecoverLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
@@ -69,95 +109,234 @@ const Login: React.FC = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 bg-[#FAFAFA]">
         <div className="w-full max-w-md space-y-8">
 
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{LOGIN_TEXTS.FORM_TITLE}</h2>
-            <p className="text-sm text-gray-500">
-              {LOGIN_TEXTS.FORM_SUBTITLE}
-            </p>
-          </div>
-
-          {/* Form */}
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div className="space-y-4">
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-gray-700">
-                  {LOGIN_TEXTS.LABEL_EMAIL}
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" strokeWidth={2} />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-                    placeholder={LOGIN_TEXTS.PLACEHOLDER_EMAIL}
-                    required
-                  />
-                </div>
+          {recoveryStep === 1 ? (
+            <>
+              {/* Header */}
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Recuperar contraseña</h2>
+                <p className="text-sm text-gray-500">
+                  Ingresa tu correo y te enviaremos un código.
+                </p>
               </div>
 
-              {/* Password */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-gray-700">
-                  {LOGIN_TEXTS.LABEL_PASSWORD}
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" strokeWidth={2} />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-                    placeholder={LOGIN_TEXTS.PLACEHOLDER_PASSWORD}
-                    required
-                  />
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-gray-400 hover:text-gray-600 focus:outline-none p-1"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" strokeWidth={2} />
-                      ) : (
-                        <Eye className="h-5 w-5" strokeWidth={2} />
-                      )}
-                    </button>
+              {/* Form */}
+              <form className="space-y-6" onSubmit={handleRecoverPassword}>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">
+                      {LOGIN_TEXTS.LABEL_EMAIL}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-gray-400" strokeWidth={2} />
+                      </div>
+                      <input
+                        type="email"
+                        value={recoveringEmail}
+                        onChange={(e) => setRecoveringEmail(e.target.value)}
+                        className="block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                        placeholder={LOGIN_TEXTS.PLACEHOLDER_EMAIL}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
+
+                <button
+                  type="submit"
+                  disabled={recoverLoading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {recoverLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar código'}
+                </button>
+
+                <div className="flex items-center justify-center">
+                  <button 
+                    type="button" 
+                    onClick={() => setRecoveryStep(0)} 
+                    className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    Volver a iniciar sesión
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : recoveryStep === 2 ? (
+            <>
+              {/* Header */}
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Verificar código</h2>
+                <p className="text-sm text-gray-500">
+                  Hemos enviado un código de 6 dígitos a <br/> <span className="font-semibold text-gray-700">{recoveringEmail}</span>
+                </p>
               </div>
-            </div>
 
-            {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium">
-                {error}
+              {/* Form */}
+              <form className="space-y-6" onSubmit={handleResetPassword}>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Código de recuperación
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <KeyRound className="h-5 w-5 text-gray-400" strokeWidth={2} />
+                      </div>
+                      <input
+                        type="text"
+                        value={recoveryCode}
+                        onChange={(e) => setRecoveryCode(e.target.value)}
+                        className="block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl text-sm font-mono tracking-widest bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-center"
+                        placeholder="123456"
+                        maxLength={6}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Nueva contraseña
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-gray-400" strokeWidth={2} />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="block w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                        placeholder="Ingresa tu nueva contraseña"
+                        required
+                        minLength={6}
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-gray-400 hover:text-gray-600 focus:outline-none p-1"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" strokeWidth={2} />
+                          ) : (
+                            <Eye className="h-5 w-5" strokeWidth={2} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={recoverLoading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {recoverLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Cambiar contraseña'}
+                </button>
+
+                <div className="flex items-center justify-center">
+                  <button 
+                    type="button" 
+                    onClick={() => setRecoveryStep(0)} 
+                    className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    Volver a iniciar sesión
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{LOGIN_TEXTS.FORM_TITLE}</h2>
+                <p className="text-sm text-gray-500">
+                  {LOGIN_TEXTS.FORM_SUBTITLE}
+                </p>
               </div>
-            )}
 
-            {/* Forgot Password Link */}
-            <div className="flex items-center justify-end">
-              <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-                {LOGIN_TEXTS.LINK_FORGOT_PASSWORD}
-              </a>
-            </div>
+              {/* Form */}
+              <form className="space-y-6" onSubmit={handleLogin}>
+                <div className="space-y-4">
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">
+                      {LOGIN_TEXTS.LABEL_EMAIL}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-gray-400" strokeWidth={2} />
+                      </div>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                        placeholder={LOGIN_TEXTS.PLACEHOLDER_EMAIL}
+                        required
+                      />
+                    </div>
+                  </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : LOGIN_TEXTS.BTN_SUBMIT}
-            </button>
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">
+                      {LOGIN_TEXTS.LABEL_PASSWORD}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-gray-400" strokeWidth={2} />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="block w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                        placeholder={LOGIN_TEXTS.PLACEHOLDER_PASSWORD}
+                        required
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-gray-400 hover:text-gray-600 focus:outline-none p-1"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" strokeWidth={2} />
+                          ) : (
+                            <Eye className="h-5 w-5" strokeWidth={2} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium">
+                    {error}
+                  </div>
+                )}
 
-          </form>
+                {/* Forgot Password Link */}
+                <div className="flex items-center justify-end">
+                  <button type="button" onClick={() => setRecoveryStep(1)} className="text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                    {LOGIN_TEXTS.LINK_FORGOT_PASSWORD}
+                  </button>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : LOGIN_TEXTS.BTN_SUBMIT}
+                </button>
+              </form>
+            </>
+          )}
 
           {/* Divider */}
           {/* <div className="relative py-3">
