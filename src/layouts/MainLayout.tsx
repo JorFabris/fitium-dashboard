@@ -15,10 +15,13 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '../routes/routes';
 import isologo from '../assets/isologo.png';
+import { EditUserSidebar } from '../components/EditUserSidebar';
+import { usersService } from '../services/users.service';
 
 const MainLayout: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,10 +39,32 @@ const MainLayout: React.FC = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = (e: React.MouseEvent) => {
+    e.stopPropagation();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate(ROUTES.login);
+  };
+
+  const handleEditUserSubmit = async (data: any) => {
+    if (!user?._id) return;
+    try {
+      const response = await usersService.update(user._id, data);
+      
+      // Update local state and localStorage with the returned updated user data
+      // If the backend returns the user in response.user or similar, adjust this.
+      // Assuming it returns the updated user object directly or we merge it.
+      const updatedUser = { ...user, ...data };
+      if (response && response.user) {
+        Object.assign(updatedUser, response.user);
+      }
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Error al actualizar usuario', error);
+      // You could add a toast notification here
+      throw error; // Rethrow to let the sidebar handle the loading state
+    }
   };
 
   const navItems = [
@@ -48,7 +73,7 @@ const MainLayout: React.FC = () => {
     { name: 'Coaches', path: ROUTES.coaches, icon: UserSquare2 },
     { name: 'Clases', path: ROUTES.classes, icon: Calendar },
     { name: 'Rutinas', path: '/routines', icon: ClipboardList },
-    { name: 'Competencias', path: '/competitions', icon: Trophy },
+    // { name: 'Competencias', path: '/competitions', icon: Trophy },
     { name: 'Pagos', path: ROUTES.payments, icon: CreditCard },
     { name: 'Gastos', path: '/expenses', icon: Receipt },
     // { name: 'Productos', path: '/products', icon: Package },
@@ -118,7 +143,10 @@ const MainLayout: React.FC = () => {
             <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 shrink-0" />
           </div> */}
 
-          <div className="flex items-center justify-between px-2 cursor-pointer group">
+          <div 
+            className="flex items-center justify-between px-2 cursor-pointer group"
+            onClick={() => setIsEditUserOpen(true)}
+          >
             <div className="flex items-center gap-3 min-w-0">
               <img
                 src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop"
@@ -158,6 +186,13 @@ const MainLayout: React.FC = () => {
           <Outlet />
         </div>
       </main>
+
+      <EditUserSidebar 
+        isOpen={isEditUserOpen}
+        onClose={() => setIsEditUserOpen(false)}
+        onSubmit={handleEditUserSubmit}
+        userData={user}
+      />
     </div>
   );
 };
