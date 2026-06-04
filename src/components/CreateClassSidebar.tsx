@@ -108,7 +108,7 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
         coach: coachId || '',
         capacity: classData.capacity || 20,
         active: classData.active !== undefined ? classData.active : true,
-        bookingsCount: Array.isArray(classData.bookings) ? classData.bookings.length : 0
+        bookingsCount: (classData.schedules || []).reduce((acc: number, s: any) => acc + (Array.isArray(s.bookings) ? s.bookings.length : 0), 0)
       });
     } else if (!isOpen) {
       setFormData({

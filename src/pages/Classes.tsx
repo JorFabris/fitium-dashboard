@@ -186,9 +186,9 @@ export default function Classes() {
                   
                   const coachImg = classObj.coach?.profileImage || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop`;
 
-                  const bookingsCount = Array.isArray(classObj.bookings) ? classObj.bookings.length : 0;
-                  const capacity = classObj.capacity || 20;
-                  const occupancy = Math.round((bookingsCount / capacity) * 100);
+                  const capacity = (classObj.capacity || 20) * (classObj.schedules?.length || 1);
+                  const bookingsCount = (classObj.schedules || []).reduce((acc: number, s: any) => acc + (Array.isArray(s.bookings) ? s.bookings.length : 0), 0);
+                  const occupancy = capacity > 0 ? Math.round((bookingsCount / capacity) * 100) : 0;
 
                   // Progress bar color logic
                   let barColor = 'bg-emerald-500';
@@ -306,9 +306,9 @@ export default function Classes() {
                     
                     const coachImg = classObj.coach?.profileImage || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop`;
 
-                    const bookingsCount = Array.isArray(classObj.bookings) ? classObj.bookings.length : 0;
-                    const capacity = classObj.capacity || 20;
-                    const occupancy = Math.round((bookingsCount / capacity) * 100);
+                    const capacity = (classObj.capacity || 20) * (classObj.schedules?.length || 1);
+                    const bookingsCount = (classObj.schedules || []).reduce((acc: number, s: any) => acc + (Array.isArray(s.bookings) ? s.bookings.length : 0), 0);
+                    const occupancy = capacity > 0 ? Math.round((bookingsCount / capacity) * 100) : 0;
 
                     // Progress bar color logic
                     let barColor = 'bg-emerald-500';

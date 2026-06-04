@@ -43,10 +43,9 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
           setClassesList(res.data);
           if (studentData) {
             const enrolled = res.data
-              .filter((c: any) =>
-                c.bookings?.some((b: any) => (typeof b === 'object' ? b._id === studentData._id : b === studentData._id))
-              )
-              .map((c: any) => c._id);
+              .flatMap((c: any) => c.schedules || [])
+              .filter((s: any) => s.bookings?.some((b: any) => (typeof b === 'object' ? b._id === studentData._id : b === studentData._id)))
+              .map((s: any) => s._id);
             setSelectedClasses(enrolled);
           } else {
             setSelectedClasses([]);
@@ -238,45 +237,46 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
                 </p>
               ) : (
                 <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
-                  {classesList.map((classObj) => {
-                    const isSelected = selectedClasses.includes(classObj._id);
-                    const firstSchedule = classObj.schedules && classObj.schedules.length > 0 ? classObj.schedules[0] : null;
-                    const schedule = firstSchedule ? `${firstSchedule.startTime} - ${firstSchedule.endTime}` : 'N/A';
-                    const days = firstSchedule && Array.isArray(firstSchedule.weekDays)
-                      ? firstSchedule.weekDays.map((d: string) => {
-                          const mapping: Record<string, string> = {
-                            'Monday': 'Lun', 'Tuesday': 'Mar', 'Wednesday': 'Mié',
-                            'Thursday': 'Jue', 'Friday': 'Vie', 'Saturday': 'Sáb', 'Sunday': 'Dom'
-                          };
-                          return mapping[d] || d;
-                        }).join(', ')
-                      : '';
+                  {classesList.flatMap((classObj) => {
+                     return (classObj.schedules || []).map((schedule: any) => {
+                        const isSelected = selectedClasses.includes(schedule._id);
+                        const time = `${schedule.startTime} - ${schedule.endTime}`;
+                        const days = Array.isArray(schedule.weekDays)
+                          ? schedule.weekDays.map((d: string) => {
+                              const mapping: Record<string, string> = {
+                                'Monday': 'Lun', 'Tuesday': 'Mar', 'Wednesday': 'Mié',
+                                'Thursday': 'Jue', 'Friday': 'Vie', 'Saturday': 'Sáb', 'Sunday': 'Dom'
+                              };
+                              return mapping[d] || d;
+                            }).join(', ')
+                          : '';
 
-                    return (
-                      <div
-                        key={classObj._id}
-                        onClick={() => handleToggleClass(classObj._id)}
-                        className={`p-3 border rounded-xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-blue-200 bg-blue-50/40 text-blue-900 shadow-sm'
-                            : 'border-gray-200 hover:bg-gray-50 bg-white'
-                        }`}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <span className="text-xs font-bold block truncate">{classObj.name}</span>
-                          <span className="text-[10px] text-gray-500 block mt-0.5 font-medium">
-                            {schedule} • {days}
-                          </span>
-                        </div>
-                        <input
-                          type="checkbox"
-                          disabled={onlyView}
-                          checked={isSelected}
-                          onChange={() => {}}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0 pointer-events-none"
-                        />
-                      </div>
-                    );
+                        return (
+                          <div
+                            key={schedule._id}
+                            onClick={() => handleToggleClass(schedule._id)}
+                            className={`p-3 border rounded-xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                              isSelected
+                                ? 'border-blue-200 bg-blue-50/40 text-blue-900 shadow-sm'
+                                : 'border-gray-200 hover:bg-gray-50 bg-white'
+                            }`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs font-bold block truncate">{classObj.name}</span>
+                              <span className="text-[10px] text-gray-500 block mt-0.5 font-medium">
+                                {time} • {days}
+                              </span>
+                            </div>
+                            <input
+                              type="checkbox"
+                              disabled={onlyView}
+                              checked={isSelected}
+                              onChange={() => {}}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0 pointer-events-none"
+                            />
+                          </div>
+                        );
+                     });
                   })}
                 </div>
               )}
