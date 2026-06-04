@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { coachesService } from '@/services/coaches.service';
 
 interface CreateClassSidebarProps {
@@ -49,16 +49,18 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
 }) => {
   const [coaches, setCoaches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [schedules, setSchedules] = useState<{startTime: string, endTime: string, weekDays: string[]}[]>([{
+    startTime: '07:00',
+    endTime: '08:00',
+    weekDays: []
+  }]);
+
   const [formData, setFormData] = useState({
     name: '',
     coach: '',
-    startTime: '07:00',
-    endTime: '08:00',
     capacity: 20,
     active: true,
-    bookingsCount: 0,
-    daysCount: 'Seleccionar días'
+    bookingsCount: 0
   });
 
   // Fetch real coaches when modal is open
@@ -83,35 +85,40 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
   useEffect(() => {
     if (isOpen && classData) {
       const coachId = typeof classData.coach === 'object' ? classData.coach?._id : classData.coach;
-      const initialSelected = Array.isArray(classData.weekDays)
-        ? classData.weekDays.map((d: string) => reverseDayMapping[d]).filter(Boolean)
-        : [];
       
-      setSelectedDays(initialSelected);
+      let initialSchedules = [{ startTime: '07:00', endTime: '08:00', weekDays: [] }];
+      if (classData.schedules && classData.schedules.length > 0) {
+        initialSchedules = classData.schedules.map((s: any) => ({
+          startTime: s.startTime,
+          endTime: s.endTime,
+          weekDays: Array.isArray(s.weekDays) ? s.weekDays.map((d: string) => reverseDayMapping[d]).filter(Boolean) : []
+        }));
+      } else if (classData.startTime) {
+         // Fallback for old data format
+         initialSchedules = [{
+            startTime: classData.startTime,
+            endTime: classData.endTime,
+            weekDays: Array.isArray(classData.weekDays) ? classData.weekDays.map((d: string) => reverseDayMapping[d]).filter(Boolean) : []
+         }];
+      }
+
+      setSchedules(initialSchedules as any);
       setFormData({
         name: classData.name || '',
         coach: coachId || '',
-        startTime: classData.startTime || '07:00',
-        endTime: classData.endTime || '08:00',
         capacity: classData.capacity || 20,
         active: classData.active !== undefined ? classData.active : true,
-        bookingsCount: Array.isArray(classData.bookings) ? classData.bookings.length : 0,
-        daysCount: initialSelected.length > 0
-          ? `${initialSelected.length} días seleccionados (${initialSelected.join(', ')})`
-          : 'Seleccionar días'
+        bookingsCount: Array.isArray(classData.bookings) ? classData.bookings.length : 0
       });
     } else if (!isOpen) {
       setFormData({
         name: '',
         coach: '',
-        startTime: '07:00',
-        endTime: '08:00',
         capacity: 20,
         active: true,
-        bookingsCount: 0,
-        daysCount: 'Seleccionar días'
+        bookingsCount: 0
       });
-      setSelectedDays([]);
+      setSchedules([{ startTime: '07:00', endTime: '08:00', weekDays: [] }]);
     }
   }, [classData, isOpen]);
 
@@ -122,27 +129,36 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggleDay = (dayKey: string) => {
+  const handleScheduleChange = (index: number, field: string, value: any) => {
     if (isViewOnly) return;
-    
-    setSelectedDays((prev) => {
-      const next = prev.includes(dayKey)
-        ? prev.filter((d) => d !== dayKey)
-        : [...prev, dayKey];
-      
-      // Sort weekdays to keep order
-      const sorted = weekdays
-        .map(w => w.key)
-        .filter(key => next.includes(key));
+    const newSchedules = [...schedules];
+    newSchedules[index] = { ...newSchedules[index], [field]: value } as any;
+    setSchedules(newSchedules);
+  };
 
-      setFormData((prevForm) => ({
-        ...prevForm,
-        daysCount: sorted.length > 0
-          ? `${sorted.length} día${sorted.length > 1 ? 's' : ''} seleccionado${sorted.length > 1 ? 's' : ''} (${sorted.join(', ')})`
-          : 'Seleccionar días'
-      }));
-      return sorted;
-    });
+  const toggleScheduleDay = (scheduleIndex: number, dayKey: string) => {
+    if (isViewOnly) return;
+    const newSchedules = [...schedules];
+    const currentDays = newSchedules[scheduleIndex].weekDays;
+    
+    if (currentDays.includes(dayKey)) {
+      newSchedules[scheduleIndex].weekDays = currentDays.filter(d => d !== dayKey);
+    } else {
+      newSchedules[scheduleIndex].weekDays = [...currentDays, dayKey];
+    }
+    setSchedules(newSchedules);
+  };
+
+  const addSchedule = () => {
+    if (isViewOnly) return;
+    setSchedules([...schedules, { startTime: '07:00', endTime: '08:00', weekDays: [] }]);
+  };
+
+  const removeSchedule = (index: number) => {
+    if (isViewOnly || schedules.length === 1) return;
+    const newSchedules = [...schedules];
+    newSchedules.splice(index, 1);
+    setSchedules(newSchedules);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,20 +168,25 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
       alert('Por favor selecciona un entrenador.');
       return;
     }
-    if (selectedDays.length === 0) {
-      alert('Por favor selecciona al menos un día de la semana.');
+    
+    const invalidSchedules = schedules.some(s => s.weekDays.length === 0);
+    if (invalidSchedules) {
+      alert('Por favor asegúrate de que todos los horarios tengan al menos un día seleccionado.');
       return;
     }
+
     setLoading(true);
 
     const payload = {
       name: formData.name,
       coach: formData.coach,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      weekDays: selectedDays.map(d => dayMapping[d]),
       capacity: Number(formData.capacity),
-      active: formData.active
+      active: formData.active,
+      schedules: schedules.map(s => ({
+        startTime: s.startTime,
+        endTime: s.endTime,
+        weekDays: s.weekDays.map(d => dayMapping[d])
+      }))
     };
 
     await onSubmit(payload, classData?._id);
@@ -237,79 +258,77 @@ export const CreateClassSidebar: React.FC<CreateClassSidebarProps> = ({
                 </select>
                 {!isViewOnly && <p className="text-[10px] text-gray-400 mt-1">Selecciona el coach que estará a cargo.</p>}
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Hora de inicio <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    type="time"
-                    name="startTime"
-                    readOnly={isViewOnly}
-                    value={formData.startTime}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Hora de fin <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    type="time"
-                    name="endTime"
-                    readOnly={isViewOnly}
-                    value={formData.endTime}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-50 cursor-not-allowed text-gray-500' : ''}`}
-                  />
-                </div>
-              </div>
-              {!isViewOnly && <p className="text-[10px] text-gray-400">La clase no puede exceder las 24 horas.</p>}
             </div>
 
-            {/* Días de la Semana */}
+            {/* Horarios */}
             <div className="border-t border-gray-50 pt-5 space-y-4">
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Días de la semana</h3>
-              
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Días <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={formData.daysCount}
-                  className="w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-500 font-semibold cursor-not-allowed outline-none select-none"
-                />
-                
-                {/* Day Selector Chips */}
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {weekdays.map(day => {
-                    const isSelected = selectedDays.includes(day.key);
-                    return (
-                      <button
-                        key={day.key}
-                        type="button"
-                        onClick={() => toggleDay(day.key)}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                          isSelected
-                            ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                            : isViewOnly
-                              ? 'bg-white border-gray-200 text-gray-400'
-                              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        } ${isViewOnly ? 'cursor-default' : ''}`}
-                      >
-                        {day.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Horarios y Días</h3>
+                {!isViewOnly && (
+                  <button type="button" onClick={addSchedule} className="text-xs text-blue-600 font-semibold flex items-center gap-1 hover:text-blue-700">
+                    <Plus className="w-3 h-3" /> Agregar horario
+                  </button>
+                )}
               </div>
-              <p className="text-[11px] text-gray-500">Selecciona los días en los que se impartirá esta clase.</p>
+              
+              {schedules.map((schedule, index) => (
+                <div key={index} className="p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-4 relative">
+                  {!isViewOnly && schedules.length > 1 && (
+                    <button type="button" onClick={() => removeSchedule(index)} className="absolute top-3 right-3 text-gray-400 hover:text-red-500 p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Inicio <span className="text-red-500">*</span></label>
+                      <input
+                        required
+                        type="time"
+                        readOnly={isViewOnly}
+                        value={schedule.startTime}
+                        onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)}
+                        className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Fin <span className="text-red-500">*</span></label>
+                      <input
+                        required
+                        type="time"
+                        readOnly={isViewOnly}
+                        value={schedule.endTime}
+                        onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)}
+                        className={`w-full px-3 py-2 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-gray-700 font-medium ${isViewOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'}`}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Días <span className="text-red-500">*</span></label>
+                    <div className="flex flex-wrap gap-2">
+                      {weekdays.map(day => {
+                        const isSelected = schedule.weekDays.includes(day.key);
+                        return (
+                          <button
+                            key={day.key}
+                            type="button"
+                            onClick={() => toggleScheduleDay(index, day.key)}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                              isSelected
+                                ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
+                                : isViewOnly
+                                  ? 'bg-white border-gray-200 text-gray-400'
+                                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'
+                            } ${isViewOnly ? 'cursor-default' : ''}`}
+                          >
+                            {day.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Capacidad y Reservas */}

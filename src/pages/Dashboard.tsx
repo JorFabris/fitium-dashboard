@@ -4,6 +4,31 @@ import {
 } from 'lucide-react';
 import { dashboardService } from '@/services/dashboard.service';
 import { DASHBOARD_TEXTS } from '@/constants/texts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  Filler
+} from 'chart.js';
+import { Line, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  Filler
+);
 
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -42,7 +67,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const { kpis, alertasHoy, clasesHoy, alumnosRiesgo, altasBajas, ocupacionPromedio } = data;
+  const { kpis, alertasHoy, clasesHoy, alumnosRiesgo, altasBajas, ocupacionPromedio, ingresosEgresosMes, asistenciasPorClase } = data;
 
   const getClassOccupancyStyle = (percentage: number) => {
     if (percentage >= 75) {
@@ -201,6 +226,164 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div> */}
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        {/* Line Chart: Ingresos vs Egresos */}
+        <div className="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900">Ingresos y Egresos del Mes</h3>
+            </div>
+            <div className="h-64">
+              <Line 
+                data={{
+                  labels: ingresosEgresosMes?.map((d: any) => d.name) || [],
+                  datasets: [
+                    {
+                      label: 'Ingresos',
+                      data: ingresosEgresosMes?.map((d: any) => d.income) || [],
+                      borderColor: '#007AFF',
+                      backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                      borderWidth: 2,
+                      pointBackgroundColor: '#007AFF',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointRadius: 4,
+                      pointHoverRadius: 6,
+                      fill: true,
+                      tension: 0.4
+                    },
+                    {
+                      label: 'Egresos',
+                      data: ingresosEgresosMes?.map((d: any) => d.expense) || [],
+                      borderColor: '#FF3B30',
+                      backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                      borderWidth: 2,
+                      pointBackgroundColor: '#FF3B30',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointRadius: 4,
+                      pointHoverRadius: 6,
+                      fill: true,
+                      tension: 0.4
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12 } } },
+                    tooltip: {
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      titleFont: { family: 'Inter', size: 13 },
+                      bodyFont: { family: 'Inter', size: 13 },
+                      padding: 10,
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: function(context) {
+                          let label = context.dataset.label || '';
+                          if (label) {
+                            label += ': ';
+                          }
+                          if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                          }
+                          return label;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: { grid: { display: false }, ticks: { font: { family: 'Inter' } } },
+                    y: { 
+                      border: { display: false },
+                      grid: { color: '#F3F4F6' },
+                      beginAtZero: true,
+                      ticks: {
+                        font: { family: 'Inter' },
+                        callback: function(value) {
+                          if (Number(value) >= 1000) return '$' + Number(value) / 1000 + 'k';
+                          return '$' + value;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Pie Chart: Asistencias por clase */}
+        <div className="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900">Asistencias por Clase</h3>
+              <a href="#" className="text-sm font-semibold text-[#007AFF] hover:underline flex items-center gap-1 transition-colors">
+                Ver detalle <ChevronRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+            <div className="h-64 flex justify-center">
+              {asistenciasPorClase && asistenciasPorClase.length > 0 ? (
+                <Doughnut 
+                  data={{
+                    labels: asistenciasPorClase.map((d: any) => `${d.name} (${d.percentage}%)`),
+                    datasets: [
+                      {
+                        data: asistenciasPorClase.map((d: any) => d.value),
+                        backgroundColor: [
+                          '#007AFF', '#34C759', '#AF52DE', '#FF9500', '#8E8E93',
+                          '#FF2D55', '#5856D6', '#FFCC00', '#5AC8FA', '#4CD964'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                      }
+                    ]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { 
+                        position: 'right',
+                        labels: { 
+                          usePointStyle: true, 
+                          boxWidth: 8,
+                          font: { family: 'Inter', size: 12 },
+                          padding: 20
+                        }
+                      },
+                      tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleFont: { family: 'Inter', size: 13 },
+                        bodyFont: { family: 'Inter', size: 13 },
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                          label: function(context) {
+                            const dataIndex = context.dataIndex;
+                            const item = asistenciasPorClase[dataIndex];
+                            return `${item.name}: ${item.value} asistencias`;
+                          }
+                        }
+                      }
+                    },
+                    cutout: '65%'
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-8 px-4 w-full h-full">
+                  <span className="text-3xl mb-2">📊</span>
+                  <p className="text-sm font-semibold text-gray-900">No hay datos</p>
+                  <p className="text-xs text-gray-400 mt-1">Aún no hay reservas en las clases.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Middle Grid: Alertas de hoy & Clases de hoy */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

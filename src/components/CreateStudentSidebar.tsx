@@ -240,9 +240,10 @@ export const CreateStudentSidebar: React.FC<CreateStudentSidebarProps> = ({
                 <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
                   {classesList.map((classObj) => {
                     const isSelected = selectedClasses.includes(classObj._id);
-                    const schedule = `${classObj.startTime} - ${classObj.endTime}`;
-                    const days = Array.isArray(classObj.weekDays)
-                      ? classObj.weekDays.map((d: string) => {
+                    const firstSchedule = classObj.schedules && classObj.schedules.length > 0 ? classObj.schedules[0] : null;
+                    const schedule = firstSchedule ? `${firstSchedule.startTime} - ${firstSchedule.endTime}` : 'N/A';
+                    const days = firstSchedule && Array.isArray(firstSchedule.weekDays)
+                      ? firstSchedule.weekDays.map((d: string) => {
                           const mapping: Record<string, string> = {
                             'Monday': 'Lun', 'Tuesday': 'Mar', 'Wednesday': 'Mié',
                             'Thursday': 'Jue', 'Friday': 'Vie', 'Saturday': 'Sáb', 'Sunday': 'Dom'

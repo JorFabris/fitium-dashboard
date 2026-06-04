@@ -202,10 +202,6 @@ export default function Classes() {
                     barColor = 'bg-amber-500';
                   }
 
-                  const sortedDays = Array.isArray(classObj.weekDays)
-                    ? [...classObj.weekDays].sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
-                    : [];
-
                   return (
                     <div key={classObj._id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col gap-4">
                       {/* Top Header Row of Card */}
@@ -223,34 +219,39 @@ export default function Classes() {
                       </div>
 
                       {/* Detail Grid */}
-                      <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-50 py-3 text-xs">
-                        <div>
-                          <span className="text-gray-400 font-medium block mb-1">Horario</span>
-                          <span className="text-gray-900 font-semibold">{classObj.startTime} - {classObj.endTime}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-medium block mb-1">Entrenador</span>
+                      <div className="border-t border-b border-gray-50 py-3">
+                        <div className="flex justify-between items-center mb-3 text-xs">
+                          <span className="text-gray-400 font-medium">Entrenador</span>
                           <div className="flex items-center gap-2">
                             <img src={coachImg} alt={coachName} className="w-5 h-5 rounded-full object-cover" />
                             <span className="text-gray-800 font-semibold">{coachName}</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Days section */}
-                      <div>
-                        <span className="text-gray-400 font-medium text-xs block mb-2">Días de la semana</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {sortedDays.map((day: string) => {
-                            const label = reverseDayMapping[day] || day;
-                            return (
-                              <span key={day} className="px-2 py-0.5 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-semibold rounded-md">
-                                {label}
-                              </span>
-                            );
-                          })}
+                        <div className="text-xs">
+                          <span className="text-gray-400 font-medium block mb-2">Horarios</span>
+                          <div className="space-y-2">
+                            {(classObj.schedules || []).map((schedule: any, idx: number) => {
+                              const sortedDays = Array.isArray(schedule.weekDays)
+                                ? [...schedule.weekDays].sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
+                                : [];
+                              return (
+                                <div key={idx} className="flex flex-col gap-1.5 p-2 bg-gray-50 rounded-lg">
+                                  <div className="font-semibold text-gray-900">{schedule.startTime} - {schedule.endTime}</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {sortedDays.map((day: string) => (
+                                      <span key={day} className="px-1.5 py-0.5 bg-white border border-gray-200 text-gray-600 text-[9px] font-semibold rounded">
+                                        {reverseDayMapping[day] || day}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
+
+
 
                       {/* Occupancy and capacity progress */}
                       <div>
@@ -288,8 +289,7 @@ export default function Classes() {
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-wider">
                     <th className="px-6 py-3">Clase</th>
-                    <th className="px-6 py-3">Horario</th>
-                    <th className="px-6 py-3">Días de la semana</th>
+                    <th className="px-6 py-3">Horarios y Días</th>
                     <th className="px-6 py-3">Coach</th>
                     <th className="px-6 py-3 text-center">Capacidad</th>
                     <th className="px-6 py-3 text-center">Reservas</th>
@@ -322,11 +322,6 @@ export default function Classes() {
                       barColor = 'bg-amber-500';
                     }
 
-                    // Sort weekDays to display in order
-                    const sortedDays = Array.isArray(classObj.weekDays)
-                      ? [...classObj.weekDays].sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
-                      : [];
-
                     return (
                       <tr key={classObj._id} className="hover:bg-gray-50/50 transition-colors">
                         {/* Name & Icon */}
@@ -342,23 +337,26 @@ export default function Classes() {
                           </div>
                         </td>
 
-                        {/* Horario */}
+                        {/* Horarios y Días */}
                         <td className="px-6 py-4">
-                          <div className="text-gray-900 font-semibold text-xs leading-normal">
-                            {classObj.startTime}
-                            <span className="text-gray-400 font-medium block mt-0.5">{classObj.endTime}</span>
-                          </div>
-                        </td>
-
-                        {/* Días */}
-                        <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1">
-                            {sortedDays.map((day: string) => {
-                              const label = reverseDayMapping[day] || day;
+                          <div className="flex flex-col gap-2">
+                            {(classObj.schedules || []).map((schedule: any, idx: number) => {
+                              const sortedDays = Array.isArray(schedule.weekDays)
+                                ? [...schedule.weekDays].sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
+                                : [];
                               return (
-                                <span key={day} className="px-2 py-0.5 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-semibold rounded-md">
-                                  {label}
-                                </span>
+                                <div key={idx} className="flex items-center gap-3">
+                                  <div className="text-gray-900 font-semibold text-xs whitespace-nowrap min-w-[75px]">
+                                    {schedule.startTime} - {schedule.endTime}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {sortedDays.map((day: string) => (
+                                      <span key={day} className="px-1.5 py-0.5 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-semibold rounded">
+                                        {reverseDayMapping[day] || day}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
                               );
                             })}
                           </div>
