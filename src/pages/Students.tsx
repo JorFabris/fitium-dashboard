@@ -8,7 +8,6 @@ import { formatDate, formatCurrency } from '@/utils/formatters';
 import { STUDENTS_TEXTS, COMMON_TEXTS } from '@/constants/texts';
 import { CreateStudentSidebar } from '@/components/CreateStudentSidebar';
 import type { Student } from '@/types/student';
-import { classesService } from '@/services/classes.service';
 
 const Students: React.FC = () => {
   const {
