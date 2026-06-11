@@ -35,7 +35,7 @@ export const EditUserSidebar: React.FC<EditUserSidebarProps> = ({
         lastName: userData.lastName || '',
         email: userData.email || '',
         password: '',
-        role: userData.role || 'Coach',
+        role: userData.role || 'coach',
         box: userData.box || 'Fitium Box',
         studentAssociated: userData.studentAssociated || '',
         active: userData.active ?? true,
@@ -147,10 +147,10 @@ export const EditUserSidebar: React.FC<EditUserSidebarProps> = ({
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Rol <span className="text-red-500">*</span></label>
               <select name="role" value={formData.role} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-white">
-                <option value="Coach">Coach</option>
-                <option value="Admin">Admin</option>
-                <option value="Owner">Owner</option>
-                <option value="Student">Student</option>
+                <option value="coach">Coach</option>
+                <option value="admin">Admin</option>
+                <option value="owner">Owner</option>
+                <option value="student">Student</option>
               </select>
             </div>
 
@@ -163,7 +163,7 @@ export const EditUserSidebar: React.FC<EditUserSidebarProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Estudiante asociado <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <select name="studentAssociated" value={formData.studentAssociated} onChange={handleChange} disabled={formData.role !== 'Coach'} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-white disabled:bg-gray-50 disabled:text-gray-500">
+              <select name="studentAssociated" value={formData.studentAssociated} onChange={handleChange} disabled={formData.role !== 'coach'} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-white disabled:bg-gray-50 disabled:text-gray-500">
                 <option value="">Buscar y seleccionar estudiante</option>
                 {/* Options would go here */}
               </select>
