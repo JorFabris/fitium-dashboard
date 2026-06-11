@@ -217,8 +217,8 @@ export default function Payments() {
                         <div>
                           <span className="text-gray-400 font-medium block mb-1">Monto Neto</span>
                           <span className="text-gray-950 font-bold">{formatCurrency(p.amount)}</span>
-                          {p.discount > 0 && (
-                            <span className="text-[10px] text-green-600 block mt-0.5">({p.discount}% desc)</span>
+                          {(p.discount ?? 0) > 0 && (
+                            <span className="text-[10px] text-green-600 block mt-0.5">({p.discount ?? 0}% desc)</span>
                           )}
                         </div>
                         <div>
@@ -234,7 +234,7 @@ export default function Payments() {
                           {p.status === 'paid' ? (
                             <div className="text-gray-900 font-semibold">
                               <span>{formatDate(p.paidAt)}</span>
-                              <span className="text-[10px] text-gray-500 block mt-0.5">Método: {paymentMethodLabels[p.paymentMethod] || p.paymentMethod}</span>
+                              <span className="text-[10px] text-gray-500 block mt-0.5">Método: {p.paymentMethod ? (paymentMethodLabels[p.paymentMethod] || p.paymentMethod) : '-'}</span>
                             </div>
                           ) : (
                             <span className="text-gray-400 italic">No abonado</span>
@@ -320,8 +320,8 @@ export default function Payments() {
 
                         {/* Descuento */}
                         <td className="px-6 py-4 text-center">
-                          {p.discount > 0 ? (
-                            <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded font-semibold border border-green-100">{p.discount}%</span>
+                          {(p.discount ?? 0) > 0 ? (
+                            <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded font-semibold border border-green-100">{p.discount ?? 0}%</span>
                           ) : (
                             <span className="text-gray-400">-</span>
                           )}
@@ -340,7 +340,7 @@ export default function Payments() {
                         {/* Método */}
                         <td className="px-6 py-4">
                           <span className="font-semibold text-gray-600">
-                            {paymentMethodLabels[p.paymentMethod] || p.paymentMethod || '-'}
+                            {p.paymentMethod ? (paymentMethodLabels[p.paymentMethod] || p.paymentMethod) : '-'}
                           </span>
                         </td>
 
