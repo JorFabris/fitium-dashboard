@@ -91,12 +91,12 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
             setFormData({
               month: paymentData.month || defaultDate.month,
               year: paymentData.year || defaultDate.year,
-              amount: paymentData.amount || 0,
+              amount: paymentData.amount || "",
               status: paymentData.status || 'paid',
               dueDate: paymentData.dueDate ? new Date(paymentData.dueDate).toISOString().split('T')[0] : '',
               paidAt: paymentData.paidAt ? new Date(paymentData.paidAt).toISOString().split('T')[0] : '',
               paymentMethod: paymentData.paymentMethod || 'cash',
-              discount: paymentData.discount || 0,
+              discount: paymentData.discount || "",
               notes: paymentData.notes || ''
             });
 
@@ -377,7 +377,7 @@ export const CreatePaymentSidebar: React.FC<CreatePaymentSidebarProps> = ({
                     required
                     type="number"
                     name="amount"
-                    min={0}
+
                     readOnly={isViewOnly}
                     value={formData.amount}
                     onChange={handleChange}

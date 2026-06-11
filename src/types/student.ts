@@ -1,6 +1,6 @@
 export interface MonthlyFee {
   _id: string;
-  student: string;
+  student: Student;
   month: number;
   year: number;
   amount: number;

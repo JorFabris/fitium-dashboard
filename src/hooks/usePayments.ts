@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { paymentsService } from '@/services/payments.service';
+import type { MonthlyFee } from '@/types';
 
 export const usePayments = () => {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<MonthlyFee[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
